@@ -1,3 +1,20 @@
+plugins {
+  id 'java'
+}
+
 ant.importBuild('./build.xml') { String oldTarget ->
-  return 'ant_' + oldTarget
+  def gradleTargets = [
+    'help',
+    'build',
+    'javadoc'
+  ]
+  if (gradleTargets.contains(oldTarget)) {
+    return 'ant_' + oldTarget
+  } else {
+    return oldTarget
+  }
+}
+
+tasks.named('build') {
+  dependsOn jarExecutable
 }
