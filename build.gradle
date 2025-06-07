@@ -24,6 +24,13 @@ sourceSets {
             exclude '**/*.java', '**/*.cpp', '**/*.h', '**/package.html', 'com/eteks/sweethome3d/io/*Catalog*.properties', 'com/eteks/sweethome3d/io/resources/**', '**/help/**', '**/*.svg'
             // Include patterns resources
             include 'com/eteks/sweethome3d/io/resources/patterns/**'
+            include '**/*.gif'
+            include '**/*.jpg'
+            include '**/*.png'
+            include '**/*.properties'
+            include '**/resources/**'
+            include 'com/eteks/sweethome3d/model/*.properties'
+            include 'com/eteks/sweethome3d/tools/OperatingSystem*.properties'
         }
     }
     applet {
@@ -38,6 +45,7 @@ sourceSets {
         }
         resources {
             srcDirs = ['test']
+            include 'com/eteks/sweethome3d/io/resources/**'
         }
     }
 }
@@ -73,8 +81,16 @@ dependencies {
     runtimeOnly fileTree(dir: 'lib/linux', include: ['*.jar', '*.so'])
 
     // Test dependencies
-    testImplementation files('libtest/javaAwtDesktop.jar')
     testImplementation 'junit:junit:4.13.2'
+    testImplementation fileTree(dir: 'lib', include: ['**/*.jar'])
+    testImplementation fileTree(dir: 'libtest', include: ['**/*.jar'])
+
+    testImplementation sourceSets.main.output
+
+    // FIXME: Could we thin out the repo by depending on Maven repositories?
+    // testImplementation 'abbot:abbot:1.4.0'
+    // testImplementation 'jdepend:jdepend:2.9.1'
+    // testImplementation 'jdom:jdom:1.1'
 }
 
 task cleanBuildDir(type: Delete) {
@@ -85,11 +101,13 @@ task compileApplet(type: JavaCompile) {
     description = 'Compile applet classes with Java 1.2/1.1 compatibility'
     source = fileTree('src') {
         include 'com/eteks/sweethome3d/applet/SweetHome3D*.java'
+        include 'com/eteks/sweethome3d/tools/**'
+        include 'com/eteks/sweethome3d/model/**'
     }
     destinationDir = file("$buildDir/classes-applet")
     options.encoding = 'ISO-8859-1'
-    sourceCompatibility = '1.2'
-    targetCompatibility = '1.1'
+    sourceCompatibility = sourceCompatibility
+    targetCompatibility = targetCompatibility
     classpath = sourceSets.main.compileClasspath + fileTree(dir: 'lib', include: '**/*.jar') + fileTree(dir: 'libtest', include: '**/*.jar')
     options.debug = false
     options.debugOptions.debugLevel = 'lines,vars,source'
@@ -102,8 +120,8 @@ task compileMain(type: JavaCompile) {
     }
     destinationDir = file("$buildDir/classes-main")
     options.encoding = 'ISO-8859-1'
-    sourceCompatibility = '1.5'
-    targetCompatibility = '1.5'
+    sourceCompatibility = sourceCompatibility
+    targetCompatibility = targetCompatibility
     classpath = sourceSets.main.compileClasspath + fileTree(dir: 'lib', include: '**/*.jar') + fileTree(dir: 'libtest', include: '**/*.jar')
     options.debug = false
     options.debugOptions.debugLevel = 'lines,vars,source'
@@ -113,21 +131,26 @@ task copyResources(type: Copy) {
     description = 'Copy non-Java resources to build/classes'
     from('src') {
         include '**'
-        exclude '**/*.java', '**/*.cpp', '**/*.h', '**/package.html', 'com/eteks/sweethome3d/io/*Catalog*.properties', 'com/eteks/sweethome3d/io/resources/**', '**/help/**', '**/*.svg'
+        exclude '**/*.java', '**/*.cpp', '**/*.h', '**/package.html',
+                'com/eteks/sweethome3d/io/*Catalog*.properties',
+                'com/eteks/sweethome3d/io/resources/**', '**/help/**',
+                '**/*.svg'
     }
     from('src') {
         include 'com/eteks/sweethome3d/io/resources/patterns/**'
     }
-    into "$buildDir/classes"
+    destinationDir = file("$buildDir/non-code-resources")
 }
 
-task jarSweetHome3D(type: Jar) {
+task jarSweetHome3D(type: Jar, dependsOn: ['compileMain', 'compileApplet', 'copyResources']) {
     description = 'Create SweetHome3D.jar from compiled classes'
     archiveBaseName = 'SweetHome3D'
     destinationDirectory = file("$buildDir")
+    dependsOn 'copyResources'
     from("$buildDir/classes-main")
     from("$buildDir/classes-applet")
-    from("$buildDir/classes")
+    from("$buildDir/non-code-resources")
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 task buildSweetHome3D(dependsOn: ['cleanBuildDir', 'compileApplet', 'compileMain', 'copyResources', 'jarSweetHome3D']) {
@@ -191,6 +214,25 @@ task helpJar(type: Jar) {
         include '**/help/**'
     }
 }
+
+tasks.named('test', Test) {
+  // dependsOn(processResources)
+
+  jvmArgs = [
+    '--add-opens=java.base/java.util=ALL-UNNAMED',
+    '--add-opens=java.base/java.lang=ALL-UNNAMED',
+    '--add-exports=java.desktop/com.apple.eio=ALL-UNNAMED'
+  ]
+}
+
+tasks.register('positionForegroundResource', Copy) {
+  from('src/com/eteks/sweethome3d/io/resources/patterns') {
+    include 'foreground.png'
+  }
+  into "$buildDir/resources/patterns"
+}
+
+tasks.processResources.dependsOn positionForegroundResource
 
 build.dependsOn buildSweetHome3D
 
