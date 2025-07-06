@@ -1,1 +1,43 @@
+/*
+ * Sweet Home 3D - Gradle Settings
+ *
+ * This file defines the project structure and configuration for the
+ * Sweet Home 3D Gradle build system.
+ */
+
+// Plugin management must be first
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+    }
+}
+
+// Root project name
 rootProject.name = 'SweetHome3D'
+
+// Dependency resolution management
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+
+        // Local JAR repository
+        flatDir {
+            dirs 'lib', 'libtest'
+        }
+    }
+}
+
+// Build cache configuration
+buildCache {
+    local {
+        enabled = true
+        directory = file("${rootDir}/.gradle/build-cache")
+        removeUnusedEntriesAfterDays = 30
+    }
+}
+
+// Include additional build scripts if they exist
+if (file('build-extensions.gradle').exists()) {
+    apply from: 'build-extensions.gradle'
+}
