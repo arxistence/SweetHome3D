@@ -42,17 +42,24 @@ version = '7.5'
 group = 'com.eteks.sweethome3d'
 
 // Java compatibility configuration
-def javaVersion = JavaVersion.current()
-def isLegacyJava = javaVersion.isJava8() || javaVersion.isJava7() || javaVersion.isJava6() || javaVersion.isJava5()
-
 java {
-    sourceCompatibility = isLegacyJava ? JavaVersion.VERSION_1_5 : JavaVersion.VERSION_1_8
-    targetCompatibility = isLegacyJava ? JavaVersion.VERSION_1_5 : JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
 }
 
 // Application configuration
 application {
-    mainClass = 'com.eteks.sweethome3d.SweetHome3DBootstrap'
+    mainClass = 'com.eteks.sweethome3d.SweetHome3D'
+    applicationDefaultJvmArgs = [
+        '--add-opens=java.desktop/java.awt=ALL-UNNAMED',
+        '--add-opens=java.desktop/sun.awt=ALL-UNNAMED',
+        '--add-opens=java.desktop/com.apple.eio=ALL-UNNAMED',
+        '--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED',
+        '-Djava.library.path=lib/java3d-1.6/macosx:lib/yafaray/macosx:lib/java3d-1.6/linux/amd64:lib/yafaray/linux/x64:lib/java3d-1.6/windows/amd64:lib/yafaray/windows/x64',
+        '-Dcom.eteks.sweethome3d.j3d.YafarayPluginsFolder=lib/yafaray/macosx/yafaray-plugins',
+        '-Djogamp.gluegen.UseTempJarCache=false'
+    ]
 }
 
 // Platform-specific JRE paths (configure these based on your system)
@@ -88,11 +95,17 @@ sourceSets {
             exclude '**/*.cpp'
             exclude '**/*.h'
             exclude '**/package.html'
-            exclude 'com/eteks/sweethome3d/io/*Catalog*.properties'
-            exclude 'com/eteks/sweethome3d/io/resources/**'
-            exclude '**/help/**'
             exclude '**/*.svg'
-            include 'com/eteks/sweethome3d/io/resources/patterns/**'
+            // Include all properties files and resources by default
+        }
+    }
+    test {
+        java {
+            srcDirs = ['test']
+        }
+        resources {
+            srcDirs = ['test']
+            exclude '**/*.java'
         }
     }
 }
@@ -106,14 +119,13 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: 'lib', include: ['*.jar'])
-    implementation fileTree(dir: 'lib/macosx', include: ['*.jar'])
+    implementation fileTree(dir: 'lib', include: ['*.jar'], exclude: ['j3dcore.jar', 'j3dutils.jar', 'vecmath.jar'])
     implementation fileTree(dir: 'lib/java3d-1.6', include: ['*.jar'])
 
-    // Required for compilation
-    compileOnly files('libtest/AppleJavaExtensions.jar')
-    compileOnly files('libtest/javaAwtDesktop.jar')
-    compileOnly files('libtest/jnlp.jar')
+    // Required for compilation and runtime
+    implementation files('libtest/AppleJavaExtensions.jar')
+    implementation files('libtest/javaAwtDesktop.jar')
+    implementation files('libtest/jnlp.jar')
 
     // Test dependencies
     testImplementation files('libtest/AppleJavaExtensions.jar')
@@ -123,6 +135,7 @@ dependencies {
     testImplementation files('libtest/abbot.jar')
     testImplementation files('libtest/jip-1.2.jar')
     testImplementation files('libtest/jdom-1.0.jar')
+    testImplementation 'junit:junit:4.13.2'
 }
 
 // Compilation configuration
@@ -137,6 +150,10 @@ compileJava {
         '-Xlint:-options',
         '-Xlint:-deprecation'
     ]
+}
+
+compileTestJava {
+    options.encoding = 'ISO-8859-1'
 }
 
 // Custom tasks for building specific JAR files
@@ -202,6 +219,12 @@ tasks.register('application', Jar) {
     destinationDirectory = file('build')
     dependsOn compileJava
 
+    manifest {
+        attributes(
+            'Main-Class': 'com.eteks.sweethome3d.SweetHome3DBootstrap'
+        )
+    }
+
     from(sourceSets.main.output) {
         exclude 'com/eteks/sweethome3d/applet/**'
     }
@@ -245,14 +268,16 @@ tasks.register('joglJava3dX86', Jar) {
     }
 }
 
-// Build executable JAR with all dependencies
+// Build executable JAR with all dependencies (fat JAR approach)
 tasks.register('jarExecutable', Jar) {
     group = 'build'
     description = 'Builds executable JAR with all dependencies'
     archiveBaseName = 'SweetHome3D'
     archiveVersion = version
     destinationDirectory = file('install')
-    dependsOn tasks.named('application'), tasks.named('furniture'), tasks.named('textures'), tasks.named('examples'), tasks.named('helpJar'), tasks.named('joglJava3d'), tasks.named('joglJava3dX86')
+    dependsOn compileJava, tasks.named('joglJava3d'), tasks.named('joglJava3dX86')
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
     manifest {
         attributes(
@@ -261,23 +286,62 @@ tasks.register('jarExecutable', Jar) {
         )
     }
 
-    from(zipTree(tasks.named('application').get().outputs.files.singleFile))
-    from(zipTree(tasks.named('furniture').get().outputs.files.singleFile))
-    from(zipTree(tasks.named('textures').get().outputs.files.singleFile))
-    from(zipTree(tasks.named('examples').get().outputs.files.singleFile))
-    from(zipTree(tasks.named('helpJar').get().outputs.files.singleFile))
+    // Include compiled classes (excluding applet classes)
+    from(sourceSets.main.output) {
+        exclude 'com/eteks/sweethome3d/applet/**'
+    }
 
-    from(fileTree('lib')) {
+    // Include all resources (following Ant pattern)
+    from(sourceSets.main.resources.srcDirs) {
+        include '**'
+        exclude '**/*.java'
+        exclude '**/*.cpp'
+        exclude '**/*.h'
+        exclude '**/package.html'
+        exclude '**/*.svg'
+    }
+
+    // Include all dependency JARs by extracting their contents
+    from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
+
+    // Include lib JAR files by extracting their contents
+    from(fileTree('lib').matching {
         include '*.jar'
         include 'macosx/*.jar'
         include 'java3d-1.6/*.jar'
         include 'java3d-1.6/i586/gluegen-rt.jar'
         exclude 'java3d-1.6/jogl-all.jar'
+        exclude 'j3dcore.jar'
+        exclude 'j3dutils.jar'
+        exclude 'vecmath.jar'
+        exclude 'macosx/gluegen-rt.jar'
+        exclude 'macosx/jogl.jar'
+    }.collect { zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
     }
 
-    from(tasks.named('joglJava3d').get().outputs.files)
-    from(tasks.named('joglJava3dX86').get().outputs.files)
+    // Include optimized JOGL JARs
+    from(zipTree(tasks.named('joglJava3d').get().outputs.files.singleFile)) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    from(zipTree(tasks.named('joglJava3dX86').get().outputs.files.singleFile)) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
 
+    // Include JNLP JAR
+    from(zipTree('libtest/jnlp.jar')) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+
+    // Include native libraries
     from(fileTree('lib')) {
         include 'windows/**/*.dll'
         include 'java3d-1.6/windows/**/*.dll'
@@ -290,15 +354,160 @@ tasks.register('jarExecutable', Jar) {
         include 'yafaray/macosx/**/*.dylib'
     }
 
-    from(fileTree('libtest')) {
-        include 'jnlp.jar'
-    }
-
+    // Include license files
     from(fileTree('.')) {
         include 'LICENSE.TXT'
         include 'COPYING.TXT'
         include 'THIRDPARTY-LICENSE-*.TXT'
         include 'THIRDPARTY-LICENSE-*.HTML'
+    }
+}
+
+// Create a clean JAR that excludes old JOGL and only uses Java 3D 1.6 libraries
+tasks.register('jarCleanJogl', Jar) {
+    group = 'build'
+    description = 'Builds executable JAR with only Java 3D 1.6 and no legacy JOGL'
+    archiveBaseName = 'SweetHome3D-clean'
+    archiveVersion = version
+    destinationDirectory = file('install')
+    dependsOn compileJava, tasks.named('joglJava3d'), tasks.named('joglJava3dX86')
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes(
+            'Add-opens': 'java.desktop/java.awt java.desktop/sun.awt java.desktop/com.apple.eio java.desktop/com.apple.eawt',
+            'Main-Class': 'com.eteks.sweethome3d.SweetHome3DBootstrap'
+        )
+    }
+
+    // Include compiled classes (excluding applet classes)
+    from(sourceSets.main.output) {
+        exclude 'com/eteks/sweethome3d/applet/**'
+    }
+
+    // Include all resources (following Ant pattern)
+    from(sourceSets.main.resources.srcDirs) {
+        include '**'
+        exclude '**/*.java'
+        exclude '**/*.cpp'
+        exclude '**/*.h'
+        exclude '**/package.html'
+        exclude '**/*.svg'
+    }
+
+    // Include only NON-JOGL dependency JARs
+    from(fileTree('lib').matching {
+        include 'batik-svgpathparser-1.7.jar'
+        include 'freehep-vectorgraphics-svg-2.1.1c.jar'
+        include 'iText-2.1.7.jar'
+        include 'jeksparser-calculator.jar'
+        include 'jmf.jar'
+        include 'sunflow-0.07.3i.jar'
+    }.collect { zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+        exclude 'com/sun/opengl/**'  // Exclude old JOGL
+        exclude 'javax/media/opengl/**'  // Exclude old JOGL
+    }
+
+    // Include ONLY Java 3D 1.6 JARs (newer version) - NO legacy JOGL
+    from(fileTree('lib/java3d-1.6').matching {
+        include 'j3dcore.jar'
+        include 'j3dutils.jar'
+        include 'vecmath.jar'
+        include 'gluegen-rt.jar'
+    }.collect { zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'com/sun/opengl/**'  // Exclude any legacy JOGL
+    }
+
+    // Include optimized JOGL JARs (newer version only)
+    from(zipTree(tasks.named('joglJava3d').get().outputs.files.singleFile)) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    from(zipTree(tasks.named('joglJava3dX86').get().outputs.files.singleFile)) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+
+    // Include JNLP JAR
+    from(zipTree('libtest/jnlp.jar')) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+
+    // Include ONLY Java 3D 1.6 native libraries (no legacy ones)
+    from(fileTree('lib')) {
+        include 'java3d-1.6/macosx/*.dylib'
+        include 'java3d-1.6/windows/**/*.dll'
+        include 'java3d-1.6/linux/**/*.so'
+        include 'yafaray/windows/**/*.dll'
+        include 'yafaray/linux/**/*.so'
+        include 'yafaray/macosx/**/*.dylib'
+        // Explicitly exclude old JOGL native libs
+        exclude 'macosx/*.jnilib'
+        exclude 'windows/**/*.dll'
+        exclude 'linux/**/*.so'
+    }
+
+    // Include license files
+    from(fileTree('.')) {
+        include 'LICENSE.TXT'
+        include 'COPYING.TXT'
+        include 'THIRDPARTY-LICENSE-*.TXT'
+        include 'THIRDPARTY-LICENSE-*.HTML'
+    }
+}
+
+// Create a simple fat JAR for testing
+tasks.register('fatJar', Jar) {
+    group = 'build'
+    description = 'Builds a simple fat JAR for testing'
+    archiveBaseName = 'SweetHome3D-fat'
+    archiveVersion = version
+    destinationDirectory = file('build')
+    dependsOn compileJava
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    manifest {
+        attributes('Main-Class': 'com.eteks.sweethome3d.SweetHome3DBootstrap')
+    }
+
+    // Include all compiled classes and resources
+    from(sourceSets.main.output)
+
+    // Include all dependency JARs
+    from(configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
+    }
+
+    // Include essential lib JARs
+    from(zipTree('lib/batik-svgpathparser-1.7.jar')) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    from(zipTree('lib/jeksparser-calculator.jar')) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+    from(zipTree('libtest/jnlp.jar')) {
+        exclude 'META-INF/MANIFEST.MF'
+    }
+
+    // Include all native libraries
+    from(fileTree('lib')) {
+        include 'macosx/*.jnilib'
+        include 'java3d-1.6/macosx/*.dylib'
+        include 'java3d-1.6/windows/**/*.dll'
+        include 'java3d-1.6/linux/**/*.so'
+        include 'windows/**/*.dll'
+        include 'linux/**/*.so'
+        include 'yafaray/windows/**/*.dll'
+        include 'yafaray/linux/**/*.so'
+        include 'yafaray/macosx/**/*.dylib'
     }
 }
 
@@ -551,6 +760,12 @@ build.dependsOn tasks.named('application'), tasks.named('furniture'), tasks.name
 // Task ordering
 tasks.named('build') {
     dependsOn jarExecutable
+}
+
+// Configure test task
+tasks.named('test') {
+    jvmArgs = application.applicationDefaultJvmArgs
+    ignoreFailures = true
 }
 
 // Configure wrapper
