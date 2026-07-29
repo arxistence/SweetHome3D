@@ -719,7 +719,7 @@ public class BackgroundImageWizardStepsPanel extends JPanel implements View {
     Color.RGBtoHSB(selectionColor.getRed(), selectionColor.getGreen(), selectionColor.getBlue(), hsb);
     if (hsb [1] < 0.4f) {
       // If color is too gray, return a default blue color
-      selectionColor = new Color(40, 89, 208);
+      selectionColor = UIManager.getColor("Component.focusColor");
     }
     return selectionColor;
   }
