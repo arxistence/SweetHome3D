@@ -129,6 +129,7 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'lib', include: ['*.jar'])
     implementation fileTree(dir: 'lib/java3d-1.6', include: ['*.jar'])
+    implementation libs.itext
 
     // Required for compilation and runtime
     implementation files('libtest/AppleJavaExtensions.jar')

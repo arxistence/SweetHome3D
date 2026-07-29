@@ -1,5 +1,7 @@
 [versions]
 junit = "4.13.2"
+itext = "2.1.7"
 
 [libraries]
 junit = { module = "junit:junit", version.ref = "junit" }
+itext = { module = "com.lowagie:itext", version.ref = "itext" }
