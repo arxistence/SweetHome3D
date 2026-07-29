@@ -127,7 +127,7 @@ repositories {
 }
 
 dependencies {
-    implementation fileTree(dir: 'lib', include: ['*.jar'], exclude: ['j3dcore.jar', 'j3dutils.jar', 'vecmath.jar'])
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
     implementation fileTree(dir: 'lib/java3d-1.6', include: ['*.jar'])
 
     // Required for compilation and runtime
@@ -324,9 +324,6 @@ tasks.register('jarExecutable', Jar) {
         include 'java3d-1.6/*.jar'
         include 'java3d-1.6/i586/gluegen-rt.jar'
         exclude 'java3d-1.6/jogl-all.jar'
-        exclude 'j3dcore.jar'
-        exclude 'j3dutils.jar'
-        exclude 'vecmath.jar'
         exclude 'macosx/gluegen-rt.jar'
         exclude 'macosx/jogl.jar'
     }.collect { zipTree(it) }) {
@@ -661,9 +658,6 @@ tasks.register('portableArchive') {
             include 'java3d-1.6/**'
             include 'yafaray/**'
             exclude 'jmf.jar'
-            exclude 'j3dcore.jar'
-            exclude 'j3dutils.jar'
-            exclude 'vecmath.jar'
         }
 
         // Copy license files
