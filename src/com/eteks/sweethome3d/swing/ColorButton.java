@@ -364,7 +364,7 @@ public class ColorButton extends JButton {
       removeAll();
       // Create components
       this.grayColorChart = new GrayColorChart();
-      this.grayColorChart.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+      this.grayColorChart.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
       final Cursor pipetteCursor = SwingTools.createCustomCursor(
           OperatingSystem.isMacOSX()
               ? ColorButton.class.getResource("resources/cursors/pipette16x16-macosx.png")
@@ -390,7 +390,7 @@ public class ColorButton extends JButton {
       this.grayColorChart.addMouseMotionListener(grayColorCharMouseListener);
 
       this.colorChart = new ColorChart();
-      this.colorChart.setBorder(BorderFactory.createLineBorder(Color.GRAY));
+      this.colorChart.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
       this.colorChart.setCursor(pipetteCursor);
       MouseInputAdapter colorChartMouseListener = new MouseInputAdapter() {
           @Override
@@ -417,7 +417,7 @@ public class ColorButton extends JButton {
             Insets insets = getInsets();
             int drawnWidth = getWidth() - insets.right - insets.left;
             int drawnHeight = getHeight() - insets.bottom - insets.top;
-            g.setColor(Color.GRAY);
+            g.setColor(UIManager.getColor("Component.borderColor"));
             g.translate(insets.left, insets.top);
             g.drawRect(0, 0, drawnWidth / 2 - 1, drawnHeight - 1);
             g.drawRect(drawnWidth / 2, 0, drawnWidth / 2 - 1, drawnHeight - 1);
@@ -1223,7 +1223,7 @@ public class ColorButton extends JButton {
               Insets insets = getInsets();
               int drawnWidth = getWidth() - insets.right - insets.left;
               int drawnHeight = getHeight() - insets.bottom - insets.top;
-              g.setColor(Color.GRAY);
+              g.setColor(UIManager.getColor("Component.borderColor"));
               g.translate(insets.left, insets.top);
               g.drawRect(0, 0, drawnWidth - 1, drawnHeight - 1);
               g.setColor(new Color(color));

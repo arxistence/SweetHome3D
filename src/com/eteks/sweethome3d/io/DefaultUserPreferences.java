@@ -36,6 +36,7 @@ import com.eteks.sweethome3d.model.Library;
 import com.eteks.sweethome3d.model.PatternsCatalog;
 import com.eteks.sweethome3d.model.RecorderException;
 import com.eteks.sweethome3d.model.TextureImage;
+import com.eteks.sweethome3d.model.Theme;
 import com.eteks.sweethome3d.model.TexturesCatalog;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.ResourceURLContent;
@@ -92,6 +93,7 @@ public class DefaultUserPreferences extends UserPreferences {
     setAerialViewCenteredOnSelectionEnabled(Boolean.parseBoolean(getOptionalLocalizedString(localizedPreferences, "aerialViewCenteredOnSelectionEnabled", "false")));
     setObserverCameraSelectedAtChange(Boolean.parseBoolean(getOptionalLocalizedString(localizedPreferences, "observerCameraSelectedAtChange", "true")));
     setUnit(LengthUnit.valueOf(localizedPreferences.getLocalizedString(DefaultUserPreferences.class, "unit").toUpperCase(Locale.ENGLISH)));
+    setTheme(Theme.SYSTEM);
     setRulersVisible(Boolean.parseBoolean(localizedPreferences.getLocalizedString(DefaultUserPreferences.class, "rulersVisible")));
     setGridVisible(Boolean.parseBoolean(localizedPreferences.getLocalizedString(DefaultUserPreferences.class, "gridVisible")));
     // Allow furnitureViewedFromTop and roomFloorColoredOrTextured to be different according to the running OS

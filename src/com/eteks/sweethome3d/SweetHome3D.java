@@ -22,17 +22,9 @@ package com.eteks.sweethome3d;
 import java.awt.Component;
 import java.awt.EventQueue;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.KeyboardFocusManager;
-import java.awt.Polygon;
-import java.awt.RenderingHints;
-import java.awt.Shape;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.geom.Area;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Rectangle2D;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.BufferedReader;
@@ -69,12 +61,10 @@ import javax.jnlp.UnavailableServiceException;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.JSplitPane;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.UIManager;
-import javax.swing.border.Border;
-import javax.swing.plaf.basic.BasicSplitPaneDivider;
+import javax.swing.UnsupportedLookAndFeelException;
 
 import com.eteks.sweethome3d.io.AutoRecoveryManager;
 import com.eteks.sweethome3d.io.FileUserPreferences;
@@ -88,10 +78,13 @@ import com.eteks.sweethome3d.model.ObjectProperty;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.Library;
 import com.eteks.sweethome3d.model.RecorderException;
+import com.eteks.sweethome3d.model.Theme;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.plugin.HomePluginController;
 import com.eteks.sweethome3d.plugin.PluginManager;
 import com.eteks.sweethome3d.swing.FileContentManager;
+import com.eteks.sweethome3d.swing.SweetHome3DDarkLaf;
+import com.eteks.sweethome3d.swing.SweetHome3DLightLaf;
 import com.eteks.sweethome3d.swing.SwingTools;
 import com.eteks.sweethome3d.swing.SwingViewFactory;
 import com.eteks.sweethome3d.tools.OperatingSystem;
@@ -99,6 +92,7 @@ import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.ViewFactory;
+import com.formdev.flatlaf.FlatLaf;
 
 /**
  * Sweet Home 3D main class. Sweet Home 3D accepts the parameter
@@ -497,6 +491,12 @@ public class SweetHome3D extends HomeApplication {
     // Init look and feel afterwards to ensure that Swing takes into account
     // default locale change
     initLookAndFeel();
+    getUserPreferences().addPropertyChangeListener(UserPreferences.Property.THEME,
+        new PropertyChangeListener() {
+          public void propertyChange(PropertyChangeEvent ev) {
+            applyTheme((Theme)ev.getNewValue());
+          }
+        });
     try {
       this.autoRecoveryManager = new AutoRecoveryManager(this);
     } catch (RecorderException ex) {
@@ -583,47 +583,68 @@ public class SweetHome3D extends HomeApplication {
    */
   private void initLookAndFeel() {
     try {
-      // Apply current system look and feel if swing.defaultlaf isn't defined
-      UIManager.setLookAndFeel(System.getProperty("swing.defaultlaf", UIManager.getSystemLookAndFeelClassName()));
-      // Change default titled borders under Mac OS X 10.5
-      if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-        UIManager.put("TitledBorder.border", UIManager.getBorder("TitledBorder.aquaVariant"));
-      }
-      if (OperatingSystem.isMacOSXYosemiteOrSuperior()) {
-        UIManager.put("SplitPaneDivider.border", new Border() {
-            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-              // Set a border that fills the divider with the expected background color (instead of white)
-              // except at the place where the buttons are already drawn
-              ((Graphics2D)g).setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-              g.setColor(UIManager.getColor("SplitPane.background"));
-              Shape clip = g.getClip();
-              Area clipArea = new Area(new Rectangle2D.Float(x - 0.5f, y - 0.5f, width + 1f, height + 1f));
-              clipArea.subtract(new Area(new Ellipse2D.Float(x + width / 2f - 3.4f, y + height / 2f - 3.2f, 6.8f, 6.8f)));
-              JSplitPane splitPane = ((BasicSplitPaneDivider)c).getBasicSplitPaneUI().getSplitPane();
-              if (splitPane.getOrientation() == JSplitPane.VERTICAL_SPLIT) {
-                clipArea.subtract(new Area(new Polygon(new int [] {x, x + 4, x + 8},
-                    new int [] {y + height / 2 + 3, y + height / 2 - 3, y + height / 2 + 3}, 3)));
-                clipArea.subtract(new Area(new Polygon(new int [] {x + 12, x + 15, x + 19},
-                    new int [] {y + height / 2 - 2, y + height / 2 + 3, y + height / 2 - 2}, 3)));
-              }
-              g.setClip(clipArea);
-              g.fillRect(x, y + height / 2 - 5, x + width, 11);
-              g.setClip(clip);
-            }
-
-            public boolean isBorderOpaque() {
-              return true;
-            }
-
-            public Insets getBorderInsets(Component c) {
-              return new Insets(0, 0, 0, 0);
-            }
-          });
-      }
+      applyTheme(getUserPreferences().getTheme());
       SwingTools.updateSwingResourceLanguage(getUserPreferences());
     } catch (Exception ex) {
       // Too bad keep current look and feel
     }
+  }
+
+  /**
+   * Applies the given theme, switching the active look and feel and repainting
+   * all open windows immediately (no restart required).
+   */
+  private void applyTheme(Theme theme) {
+    try {
+      boolean dark;
+      switch (theme) {
+        case DARK:
+          dark = true;
+          break;
+        case LIGHT:
+          dark = false;
+          break;
+        case SYSTEM:
+        default:
+          dark = isSystemInDarkMode();
+          break;
+      }
+      UIManager.setLookAndFeel(dark ? new SweetHome3DDarkLaf() : new SweetHome3DLightLaf());
+      FlatLaf.updateUI();
+    } catch (UnsupportedLookAndFeelException ex) {
+      ex.printStackTrace();
+    }
+  }
+
+  /**
+   * Returns <code>true</code> if the OS is currently set to a dark appearance.
+   * Checked once at startup (and whenever the user switches back to
+   * <code>Theme.SYSTEM</code>) — this does not watch for live OS appearance
+   * changes while the app is running.
+   */
+  private boolean isSystemInDarkMode() {
+    if (OperatingSystem.isMacOSX()) {
+      try {
+        Process process = Runtime.getRuntime().exec(new String [] {"defaults", "read", "-g", "AppleInterfaceStyle"});
+        process.waitFor();
+        return process.exitValue() == 0;
+      } catch (Exception ex) {
+        return false;
+      }
+    } else if (OperatingSystem.isWindows()) {
+      try {
+        Process process = Runtime.getRuntime().exec(new String [] {
+            "reg", "query", "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "/v", "AppsUseLightTheme"});
+        java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
+        String output = reader.lines().reduce("", (a, b) -> a + b);
+        process.waitFor();
+        return output.contains("0x0");
+      } catch (Exception ex) {
+        return false;
+      }
+    }
+    // No reliable signal on other platforms (e.g. Linux desktop environments vary widely) — default to light.
+    return false;
   }
 
   /**

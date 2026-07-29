@@ -2741,7 +2741,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
       if (!this.otherLevelsRoomsCache.isEmpty()) {
         Composite oldComposite = setTransparency(g2D,
             this.preferences.isGridVisible() ? 0.2f : 0.1f);
-        g2D.setPaint(Color.GRAY);
+        g2D.setPaint(UIManager.getColor("SweetHome3D.planView.otherLevelColor"));
         g2D.fill(this.otherLevelsRoomAreaCache);
         g2D.setComposite(oldComposite);
       }
@@ -3158,7 +3158,7 @@ public class PlanComponent extends JComponent implements PlanView, Scrollable, P
 
     Color defaultFillPaint = paintMode == PaintMode.PRINT
         ? Color.WHITE
-        : Color.GRAY;
+        : UIManager.getColor("SweetHome3D.planView.defaultRoomFillColor");
     // Draw rooms area
     g2D.setStroke(new BasicStroke(getStrokeWidth(Room.class, paintMode) / planScale));
     for (Room room : this.sortedLevelRooms) {

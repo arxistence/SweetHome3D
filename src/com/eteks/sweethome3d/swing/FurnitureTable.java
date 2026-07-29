@@ -888,10 +888,10 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
           // Don't display sort icon
           headerRendererLabel.setIcon(null);
           // Change header background and foreground
-          headerRendererLabel.setBackground(Color.LIGHT_GRAY);
-          headerRendererLabel.setForeground(Color.BLACK);
+          headerRendererLabel.setBackground(UIManager.getColor("TableHeader.background"));
+          headerRendererLabel.setForeground(UIManager.getColor("TableHeader.foreground"));
           headerRendererLabel.setBorder(BorderFactory.createCompoundBorder(
-              BorderFactory.createLineBorder(Color.BLACK),
+              BorderFactory.createLineBorder(UIManager.getColor("TableHeader.foreground")),
               headerRendererLabel.getBorder()));
           return headerRendererLabel;
         }
@@ -914,8 +914,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
               rendererComponent = defaultRenderer.getTableCellRendererComponent(table,
                   ((JCheckBox)rendererComponent).isSelected() ? "x" : "", false, false, row, column);
             }
-            rendererComponent.setBackground(Color.WHITE);
-            rendererComponent.setForeground(Color.BLACK);
+            rendererComponent.setBackground(UIManager.getColor("Table.background"));
+            rendererComponent.setForeground(UIManager.getColor("Table.foreground"));
             return rendererComponent;
           }
         };

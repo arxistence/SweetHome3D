@@ -838,7 +838,9 @@ class MacOSXConfiguration {
           JComponent siblingComponent = siblings.get(0);
           if (siblingComponent.getParent() == toolBar.getParent()) {
             Border border = siblingComponent.getBorder();
-            final Insets borderInsets = border.getBorderInsets(siblingComponent);
+            final Insets borderInsets = border == null
+                ? new Insets(0, 0, 0, 0)
+                : border.getBorderInsets(siblingComponent);
             final Insets filledBorderInsets = new Insets(1, 0, 0, 0);
             siblingComponent.setBorder(new CompoundBorder(border,
                 new AbstractBorder() {

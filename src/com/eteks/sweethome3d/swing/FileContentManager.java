@@ -19,7 +19,6 @@
  */
 package com.eteks.sweethome3d.swing;
 
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Dimension;
@@ -847,7 +846,7 @@ public class FileContentManager implements ContentManager {
           });
         previewLabel.setBorder(BorderFactory.createCompoundBorder(
             BorderFactory.createEmptyBorder(0, OperatingSystem.isMacOSX() ? 0 : 5, 0, OperatingSystem.isMacOSX() ? 5 : 0),
-            BorderFactory.createLineBorder(Color.GRAY)));
+            BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor"))));
         previewLabel.setPreferredSize(new Dimension(128 + 12, 128 + 2));
         fileChooser.setAccessory(previewLabel);
       }
@@ -967,7 +966,7 @@ public class FileContentManager implements ContentManager {
                 selected, expanded, leaf, row, hasFocus);
             setIcon(DirectoryChooser.this.getIcon(file));
             if (!node.isWritable()) {
-              setForeground(Color.GRAY);
+              setForeground(UIManager.getColor("Label.disabledForeground"));
             }
             return this;
           }

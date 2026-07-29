@@ -146,13 +146,8 @@ public class SwingTools {
           private Insets insets = new Insets(1, 1, 1, 1);
 
           {
-            if (OperatingSystem.isMacOSX()) {
-              this.topLeftColor = Color.GRAY;
-              this.botomRightColor = Color.LIGHT_GRAY;
-            } else {
-              this.topLeftColor = UIManager.getColor("TextField.darkShadow");
-              this.botomRightColor  = UIManager.getColor("TextField.shadow");
-            }
+            this.topLeftColor = UIManager.getColor("TextField.darkShadow");
+            this.botomRightColor  = UIManager.getColor("TextField.shadow");
           }
 
           public Insets getBorderInsets(Component c) {
@@ -187,10 +182,10 @@ public class SwingTools {
               Color previousColor = g.getColor();
               // Paint a gradient paint around component
               Rectangle rect = getInteriorRectangle(c, x, y, width, height);
-              g.setColor(Color.GRAY);
+              g.setColor(UIManager.getColor("TextField.darkShadow"));
               g.drawLine(rect.x - 1, rect.y - 1, rect.x + rect.width, rect.y - 1);
               g.drawLine(rect.x - 1, rect.y - 1, rect.x - 1, rect.y  + rect.height);
-              g.setColor(Color.LIGHT_GRAY);
+              g.setColor(UIManager.getColor("TextField.shadow"));
               g.drawLine(rect.x, rect.y  + rect.height, rect.x + rect.width, rect.y  + rect.height);
               g.drawLine(rect.x + rect.width, rect.y, rect.x + rect.width, rect.y  + rect.height);
               Color focusColor = UIManager.getColor("Focus.color");
