@@ -107,6 +107,7 @@ repositories {
 
 configurations {
     jdependTool
+    jarCleanJoglItext
 }
 
 dependencies {
@@ -128,6 +129,7 @@ dependencies {
     testImplementation libs.junit
 
     jdependTool libs.jdepend
+    jarCleanJoglItext libs.itext
 }
 
 // Compilation configuration
@@ -203,10 +205,10 @@ tasks.register('helpJar', Jar) {
     }
 }
 
-// Build application JAR without applet classes
+// Build application JAR
 tasks.register('application', Jar) {
     group = 'build'
-    description = 'Builds SweetHome3D.jar without applet classes'
+    description = 'Builds SweetHome3D.jar'
     archiveBaseName = 'SweetHome3D'
     destinationDirectory = file('build')
     dependsOn compileJava
@@ -383,7 +385,6 @@ tasks.register('jarCleanJogl', Jar) {
     from(fileTree('lib').matching {
         include 'batik-svgpathparser-1.7.jar'
         include 'freehep-vectorgraphics-svg-2.1.1c.jar'
-        include 'iText-2.1.7.jar'
         include 'jeksparser-calculator.jar'
         include 'jmf.jar'
         include 'sunflow-0.07.3i.jar'
@@ -394,6 +395,15 @@ tasks.register('jarCleanJogl', Jar) {
         exclude 'META-INF/*.RSA'
         exclude 'com/sun/opengl/**'  // Exclude old JOGL
         exclude 'javax/media/opengl/**'  // Exclude old JOGL
+    }
+
+    // Include iText (migrated to Maven Central in a prior task; jarExecutable gets it via
+    // runtimeClasspath, but this task hand-picks its dependency jars so it needs its own reference)
+    from(configurations.jarCleanJoglItext.collect { zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
     }
 
     // Include ONLY Java 3D 1.6 JARs (newer version) - NO legacy JOGL

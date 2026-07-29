@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document describes the Gradle build system for Sweet Home 3D, which replaces the original Ant build while maintaining all functionality and adding modern build capabilities.
+This document describes the Gradle build system for Sweet Home 3D.
 
 ## Quick Start
 
@@ -156,7 +156,7 @@ install/                        # Final distribution files
 └── portable/                            # Portable files
 
 deploy/                         # Web deployment files
-└── lib/                       # Signed JARs for applets
+└── lib/                       # Third-party dependency jars
 ```
 
 ## Development Workflow
@@ -249,15 +249,13 @@ This build system is part of Sweet Home 3D and follows the same licensing:
 
 When contributing to the build system:
 1. Test on all supported platforms
-2. Maintain compatibility with original Ant build
-3. Follow Gradle best practices
-4. Update documentation for any changes
+2. Follow Gradle best practices
+3. Update documentation for any changes
 
 ## Changelog
 
 ### Version 7.5
 - Initial Gradle build system
-- Complete Ant build.xml translation
 - Modern Gradle practices implementation
 - Platform-specific installer support
 - Java 3D library optimization
