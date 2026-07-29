@@ -78,6 +78,7 @@ import com.eteks.sweethome3d.model.ObjectProperty;
 import com.eteks.sweethome3d.model.HomeRecorder;
 import com.eteks.sweethome3d.model.Library;
 import com.eteks.sweethome3d.model.RecorderException;
+import com.eteks.sweethome3d.model.Theme;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.plugin.HomePluginController;
 import com.eteks.sweethome3d.plugin.PluginManager;
@@ -91,6 +92,7 @@ import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.ViewFactory;
+import com.formdev.flatlaf.FlatLaf;
 
 /**
  * Sweet Home 3D main class. Sweet Home 3D accepts the parameter
@@ -492,7 +494,7 @@ public class SweetHome3D extends HomeApplication {
     getUserPreferences().addPropertyChangeListener(UserPreferences.Property.THEME,
         new PropertyChangeListener() {
           public void propertyChange(PropertyChangeEvent ev) {
-            applyTheme((com.eteks.sweethome3d.model.Theme)ev.getNewValue());
+            applyTheme((Theme)ev.getNewValue());
           }
         });
     try {
@@ -592,7 +594,7 @@ public class SweetHome3D extends HomeApplication {
    * Applies the given theme, switching the active look and feel and repainting
    * all open windows immediately (no restart required).
    */
-  private void applyTheme(com.eteks.sweethome3d.model.Theme theme) {
+  private void applyTheme(Theme theme) {
     try {
       boolean dark;
       switch (theme) {
@@ -608,7 +610,7 @@ public class SweetHome3D extends HomeApplication {
           break;
       }
       UIManager.setLookAndFeel(dark ? new SweetHome3DDarkLaf() : new SweetHome3DLightLaf());
-      com.formdev.flatlaf.FlatLaf.updateUI();
+      FlatLaf.updateUI();
     } catch (UnsupportedLookAndFeelException ex) {
       ex.printStackTrace();
     }

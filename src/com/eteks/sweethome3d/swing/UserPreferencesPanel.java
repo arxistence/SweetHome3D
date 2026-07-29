@@ -1109,7 +1109,6 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
       add(this.unitComboBox, new GridBagConstraints(
           1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.HORIZONTAL, rightComponentInsets, macOSX ? -20 : 0, 0));
-      // Keep third row empty (used to contain unit radio buttons)
     }
     if (this.themeLabel != null) {
       // Third row

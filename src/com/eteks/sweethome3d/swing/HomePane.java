@@ -4951,9 +4951,8 @@ public class HomePane extends JRootPane implements HomeView {
     columnModel.getColumn(0).setCellRenderer(new DefaultTableCellRenderer() {
         {
           if (canOpenFolder) {
-            setForeground(UIManager.getColor("Component.linkColor") != null
-                ? UIManager.getColor("Component.linkColor")
-                : UIManager.getColor("Component.focusColor"));
+            Color linkColor = UIManager.getColor("Component.linkColor");
+            setForeground(linkColor != null ? linkColor : UIManager.getColor("Component.focusColor"));
           }
         }
 
