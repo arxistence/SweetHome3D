@@ -69,6 +69,7 @@ import javax.swing.event.ChangeListener;
 import com.eteks.sweethome3d.j3d.Component3DManager;
 import com.eteks.sweethome3d.model.LengthUnit;
 import com.eteks.sweethome3d.model.TextureImage;
+import com.eteks.sweethome3d.model.Theme;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.viewcontroller.DialogView;
@@ -86,6 +87,8 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
   private JButton          languageLibraryImportButton;
   private JLabel           unitLabel;
   private JComboBox        unitComboBox;
+  private JLabel           themeLabel;
+  private JComboBox        themeComboBox;
   private JLabel           currencyLabel;
   private JComboBox        currencyComboBox;
   private JCheckBox        valueAddedTaxCheckBox;
@@ -246,6 +249,39 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           new PropertyChangeListener() {
             public void propertyChange(PropertyChangeEvent ev) {
               unitComboBox.setSelectedItem(controller.getUnit());
+            }
+          });
+    }
+
+    if (controller.isPropertyEditable(UserPreferencesController.Property.THEME)) {
+      // Create theme label and combo box bound to controller THEME property
+      this.themeLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
+          UserPreferencesPanel.class, "themeLabel.text"));
+      this.themeComboBox = new JComboBox(Theme.values());
+      final Map<Theme, String> themeComboBoxTexts = new HashMap<Theme, String>();
+      themeComboBoxTexts.put(Theme.LIGHT, preferences.getLocalizedString(
+          UserPreferencesPanel.class, "themeComboBox.light.text"));
+      themeComboBoxTexts.put(Theme.DARK, preferences.getLocalizedString(
+          UserPreferencesPanel.class, "themeComboBox.dark.text"));
+      themeComboBoxTexts.put(Theme.SYSTEM, preferences.getLocalizedString(
+          UserPreferencesPanel.class, "themeComboBox.system.text"));
+      this.themeComboBox.setRenderer(new DefaultListCellRenderer() {
+          @Override
+          public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
+                                                        boolean cellHasFocus) {
+            return super.getListCellRendererComponent(list, themeComboBoxTexts.get(value), index, isSelected, cellHasFocus);
+          }
+        });
+      this.themeComboBox.setSelectedItem(controller.getTheme());
+      this.themeComboBox.addItemListener(new ItemListener() {
+          public void itemStateChanged(ItemEvent ev) {
+            controller.setTheme((Theme)themeComboBox.getSelectedItem());
+          }
+        });
+      controller.addPropertyChangeListener(UserPreferencesController.Property.THEME,
+          new PropertyChangeListener() {
+            public void propertyChange(PropertyChangeEvent ev) {
+              themeComboBox.setSelectedItem(controller.getTheme());
             }
           });
     }
@@ -917,6 +953,11 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
             UserPreferencesPanel.class, "unitLabel.mnemonic")).getKeyCode());
         this.unitLabel.setLabelFor(this.unitComboBox);
       }
+      if (this.themeLabel != null) {
+        this.themeLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
+            UserPreferencesPanel.class, "themeLabel.mnemonic")).getKeyCode());
+        this.themeLabel.setLabelFor(this.themeComboBox);
+      }
       if (this.currencyLabel != null) {
         this.currencyLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             UserPreferencesPanel.class, "currencyLabel.mnemonic")).getKeyCode());
@@ -1069,6 +1110,15 @@ public class UserPreferencesPanel extends JPanel implements DialogView {
           1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
           GridBagConstraints.HORIZONTAL, rightComponentInsets, macOSX ? -20 : 0, 0));
       // Keep third row empty (used to contain unit radio buttons)
+    }
+    if (this.themeLabel != null) {
+      // Third row
+      add(this.themeLabel, new GridBagConstraints(
+          0, 2, 1, 1, 0, 0, labelAlignment,
+          GridBagConstraints.NONE, labelInsets, 0, 0));
+      add(this.themeComboBox, new GridBagConstraints(
+          1, 2, 1, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.HORIZONTAL, rightComponentInsets, macOSX ? -20 : 0, 0));
     }
     if (this.currencyLabel != null) {
       // Fourth row
