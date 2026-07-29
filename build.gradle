@@ -59,6 +59,8 @@ application {
         '-Djava.library.path=lib/java3d-1.6/macosx:lib/yafaray/macosx:lib/java3d-1.6/linux/amd64:lib/yafaray/linux/x64:lib/java3d-1.6/windows/amd64:lib/yafaray/windows/x64',
         '-Dcom.eteks.sweethome3d.j3d.YafarayPluginsFolder=lib/yafaray/macosx/yafaray-plugins',
         '-Djogamp.gluegen.UseTempJarCache=false',
+        '-Duser.language=en',
+        '-Duser.country=NG',
         '-Dcom.eteks.sweethome3d.preferencesFolder=build/run-prefs'
     ]
 }
