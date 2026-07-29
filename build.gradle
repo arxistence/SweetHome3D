@@ -70,27 +70,6 @@ tasks.named('run') {
     }
 }
 
-// Platform-specific JRE paths (configure these based on your system)
-ext {
-    javaHome_windows_x86 = 'C:\\Program Files (x86)\\Java\\jre1.8.0_202'
-    javaHome_windows_x64 = 'C:\\Program Files\\OpenJDK\\zulu11.62.17-ca-jdk11.0.18-win_x64'
-    javaHome_macosx_x86_64 = '/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_x86_64.jdk/Contents/Home'
-    javaHome_macosx_arm64 = '/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_aarch64.jdk/Contents/Home'
-    javaHome_linux_x86 = 'jre1.8.0_202'
-    javaHome_linux_x64 = 'jre1.8.0_202'
-
-    // Platform-specific jarsigner paths
-    jarsigner = {
-        if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-            return "${javaHome_windows_x64}\\bin\\jarsigner.exe"
-        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
-            return "${javaHome_macosx_x86_64}/bin/jarsigner"
-        } else {
-            return "jdk1.8.0_202/bin/jarsigner"
-        }
-    }()
-}
-
 // Source sets configuration
 sourceSets {
     main {
@@ -526,38 +505,6 @@ tasks.register('java3dLibraries') {
         ['windows/i386', 'windows/x64', 'linux/i386', 'linux/x64', 'macosx'].each { platform ->
             def destDir = file("deploy/lib/${platform}")
             destDir.mkdirs()
-        }
-    }
-}
-
-// Signing tasks
-tasks.register('signJars') {
-    group = 'build'
-    description = 'Signs JAR files for deployment'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Interactive signing - prompts for credentials
-        println 'Enter signing credentials:'
-        def alias = System.console()?.readLine('Enter alias for signature: ')
-        def providerPath = System.console()?.readLine('Enter path of jarsigner provider [provider.cfg]: ') ?: 'provider.cfg'
-        def timestampURL = System.console()?.readLine('Enter URL of timestamp authority [http://time.certum.pl/]: ') ?: 'http://time.certum.pl/'
-
-        fileTree('deploy/lib').include('**/*.jar').each { jarFile ->
-            exec {
-                executable jarsigner
-                args = [
-                    '-keystore', 'NONE',
-                    '-storepass', '0000',
-                    '-storetype', 'PKCS11',
-                    '-providerClass', 'sun.security.pkcs11.SunPKCS11',
-                    '-providerArg', providerPath,
-                    '-tsa', timestampURL,
-                    '-certchain', 'certificate.pem',
-                    jarFile.absolutePath,
-                    alias
-                ]
-            }
         }
     }
 }
