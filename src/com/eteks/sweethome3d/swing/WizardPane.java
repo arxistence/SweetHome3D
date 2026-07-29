@@ -215,8 +215,8 @@ public class WizardPane extends JOptionPane implements DialogView {
     // Add new icon
     URL stepIcon = controller.getStepIcon();
     if (stepIcon != null) {
-      Color backgroundColor1 = new Color(163, 168, 226);
-      Color backgroundColor2 = new Color(80, 86, 158);
+      Color backgroundColor1 = UIManager.getColor("SweetHome3D.wizard.stepIconBackgroundColor1");
+      Color backgroundColor2 = UIManager.getColor("SweetHome3D.wizard.stepIconBackgroundColor2");
       try {
         // Read gradient colors used to paint icon background
         String [] stepIconBackgroundColors = this.preferences.getLocalizedString(
