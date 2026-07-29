@@ -6,7 +6,7 @@
  *
  * Available tasks:
  * - build: Builds SweetHome3D.jar with all classes
- * - application: Builds SweetHome3D.jar without applet classes
+ * - application: Builds SweetHome3D.jar
  * - furniture: Builds Furniture.jar with furniture catalog files
  * - textures: Builds Textures.jar with texture files
  * - examples: Builds Examples.jar with example files
@@ -238,9 +238,7 @@ tasks.register('application', Jar) {
         )
     }
 
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    from(sourceSets.main.output)
 }
 
 // Build JOGL Java3D JAR with required packages only
@@ -299,10 +297,8 @@ tasks.register('jarExecutable', Jar) {
         )
     }
 
-    // Include compiled classes (excluding applet classes)
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    // Include compiled classes
+    from(sourceSets.main.output)
 
     // Include all resources (following Ant pattern)
     from(sourceSets.main.resources.srcDirs) {
@@ -391,10 +387,8 @@ tasks.register('jarCleanJogl', Jar) {
         )
     }
 
-    // Include compiled classes (excluding applet classes)
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    // Include compiled classes
+    from(sourceSets.main.output)
 
     // Include all resources (following Ant pattern)
     from(sourceSets.main.resources.srcDirs) {
