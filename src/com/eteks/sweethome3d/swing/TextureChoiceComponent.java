@@ -85,6 +85,7 @@ import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
 import javax.swing.TransferHandler;
+import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.border.EtchedBorder;
 import javax.swing.event.ChangeEvent;
@@ -141,7 +142,7 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
         }
 
         public void paintIcon(Component c, Graphics g, int x, int y) {
-          g.setColor(Color.BLACK);
+          g.setColor(UIManager.getColor("Component.borderColor"));
           g.drawRect(x + 2, y + 2, iconHeight - 5, iconHeight - 5);
           HomeTexture texture = controller.getTexture();
           if (texture != null) {
@@ -647,7 +648,7 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
     public void updateRecentTextures(UserPreferences preferences) {
       this.recentTexturesPanel.removeAll();
       List<TextureImage> recentTextures = preferences.getRecentTextures();
-      Border labelBorder = BorderFactory.createLineBorder(Color.GRAY);
+      Border labelBorder = BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor"));
       for (int i = 0; i < recentTextures.size(); i++) {
         final TextureImage recentTexture = recentTextures.get(i);
         JLabel textureLabel = new JLabel();
