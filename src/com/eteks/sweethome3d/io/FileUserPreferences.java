@@ -74,6 +74,7 @@ import com.eteks.sweethome3d.model.Sash;
 import com.eteks.sweethome3d.model.TextureImage;
 import com.eteks.sweethome3d.model.TexturesCatalog;
 import com.eteks.sweethome3d.model.TexturesCategory;
+import com.eteks.sweethome3d.model.Theme;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
 import com.eteks.sweethome3d.tools.TemporaryURLContent;
@@ -88,6 +89,7 @@ import com.eteks.sweethome3d.tools.URLContent;
 public class FileUserPreferences extends UserPreferences {
   private static final String LANGUAGE                                  = "language";
   private static final String UNIT                                      = "unit";
+  private static final String THEME                                     = "theme";
   private static final String EXTENSIBLE_UNIT                           = "extensibleUnit";
   private static final String CURRENCY                                  = "currency";
   private static final String VALUE_ADDED_TAX_ENABLED                   = "valueAddedTaxEnabled";
@@ -293,6 +295,7 @@ public class FileUserPreferences extends UserPreferences {
     } catch (IllegalArgumentException ex) {
       setUnit(defaultLengthUnit);
     }
+    setTheme(Theme.valueOf(preferences.get(THEME, defaultPreferences.getTheme().name())));
     setCurrency(preferences.get(CURRENCY, defaultPreferences.getCurrency()));
     setValueAddedTaxEnabled(preferences.getBoolean(VALUE_ADDED_TAX_ENABLED, defaultPreferences.isValueAddedTaxEnabled()));
     String percentage = preferences.get(DEFAULT_VALUE_ADDED_TAX_PERCENTAGE, null);
@@ -953,6 +956,7 @@ public class FileUserPreferences extends UserPreferences {
     // Write other preferences
     preferences.put(LANGUAGE, getLanguage());
     preferences.put(EXTENSIBLE_UNIT, getLengthUnit().name());
+    preferences.put(THEME, getTheme().name());
     String currency = getCurrency();
     if (currency == null) {
       preferences.remove(CURRENCY);
