@@ -121,19 +121,17 @@ public class AutoCommitSpinner extends JSpinner {
                           public Number parse(String text, ParsePosition pos) {
                             Number number = super.parse(text, pos);
                             Color defaultColor = UIManager.getColor("FormattedTextField.foreground");
-                            if (Color.BLACK.equals(defaultColor) || Color.WHITE.equals(defaultColor)) {
-                              JFormattedTextField textField = ((DefaultEditor)getEditor()).getTextField();
-                              NumberFormatter formatter = (NumberFormatter)textField.getFormatter();
-                              if (pos.getIndex() != text.length()
-                                     && text.substring(pos.getIndex()).trim().length() > 0
-                                  || number != null
-                                     && (number.doubleValue() < ((Number)formatter.getMinimum()).doubleValue()
-                                         || number.doubleValue() > ((Number)formatter.getMaximum()).doubleValue())) {
-                                // Change text color if parsing couldn't be completed
-                                textField.setForeground(Color.RED.darker());
-                              } else {
-                                textField.setForeground(defaultColor);
-                              }
+                            JFormattedTextField textField = ((DefaultEditor)getEditor()).getTextField();
+                            NumberFormatter formatter = (NumberFormatter)textField.getFormatter();
+                            if (pos.getIndex() != text.length()
+                                   && text.substring(pos.getIndex()).trim().length() > 0
+                                || number != null
+                                   && (number.doubleValue() < ((Number)formatter.getMinimum()).doubleValue()
+                                       || number.doubleValue() > ((Number)formatter.getMaximum()).doubleValue())) {
+                              // Change text color if parsing couldn't be completed
+                              textField.setForeground(Color.RED.darker());
+                            } else {
+                              textField.setForeground(defaultColor);
                             }
                             return number;
                           }
