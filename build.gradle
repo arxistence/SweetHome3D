@@ -143,7 +143,7 @@ dependencies {
     testImplementation files('libtest/abbot.jar')
     testImplementation files('libtest/jip-1.2.jar')
     testImplementation files('libtest/jdom-1.0.jar')
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.junit
 }
 
 // Compilation configuration
