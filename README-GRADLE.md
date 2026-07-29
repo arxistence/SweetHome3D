@@ -2,13 +2,13 @@
 
 ## Overview
 
-This document describes the Gradle build system for Sweet Home 3D, which replaces the original Ant build while maintaining all functionality and adding modern build capabilities.
+This document describes the Gradle build system for Sweet Home 3D.
 
 ## Quick Start
 
 ### Prerequisites
 
-- Java 8 or higher
+- Java 21 (the build uses a Java 21 toolchain; no earlier JDK is supported)
 - Platform-specific tools (see Platform Requirements below)
 
 ### Basic Build Commands
@@ -82,45 +82,13 @@ This document describes the Gradle build system for Sweet Home 3D, which replace
 
 | Task | Description | Purpose |
 |------|-------------|---------|
-| `signJars` | Sign JAR files | Deployment |
 | `java3dLibraries` | Build Java 3D libraries | Platform support |
 | `jdepend` | Dependency analysis | Code quality |
 | `javadoc` | Generate API documentation | Documentation |
 
 ## Configuration
 
-### Platform-Specific Paths
-
-Edit `gradle.properties` to configure platform-specific paths:
-
-```properties
-# JRE paths
-javaHome.windows.x86=C:\\Program Files (x86)\\Java\\jre1.8.0_202
-javaHome.windows.x64=C:\\Program Files\\OpenJDK\\zulu11.62.17-ca-jdk11.0.18-win_x64
-javaHome.macosx.x86_64=/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_x86_64.jdk/Contents/Home
-javaHome.macosx.arm64=/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_aarch64.jdk/Contents/Home
-javaHome.linux.x86=jre1.8.0_202
-javaHome.linux.x64=jre1.8.0_202
-
-# Tool paths
-tools.windows.innoSetup=C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe
-tools.windows.launch4j=C:\\Program Files (x86)\\Launch4j\\launch4jc.exe
-tools.windows.signTool=C:\\Program Files (x86)\\Windows Kits\\8.1\\bin\\x86\\signtool.exe
-```
-
-### JAR Signing
-
-Configure signing properties in `gradle.properties`:
-
-```properties
-signing.keystore=NONE
-signing.storepass=0000
-signing.storetype=PKCS11
-signing.providerClass=sun.security.pkcs11.SunPKCS11
-signing.providerArg=provider.cfg
-signing.timestampURL=http://time.certum.pl/
-signing.certchain=certificate.pem
-```
+The Java version is fixed by the Gradle toolchain block in `build.gradle` (Java 21) — there is no per-platform JRE path configuration to edit. Dependency versions live in `gradle/libs.versions.toml`. Windows/macOS installer tooling paths (Inno Setup, hdiutil) are being replaced by jpackage; see the project's modernization design doc for the current state of packaging.
 
 ## Platform Requirements
 
@@ -150,9 +118,8 @@ signing.certchain=certificate.pem
 The build system handles Java 3D libraries automatically:
 
 ### Supported Versions
-- Java 3D 1.5.2 (legacy compatibility)
-- Java 3D 1.6 (primary version)
-- JOGL 2.3.2 (OpenGL integration)
+- Java 3D 1.6.2a (custom JogAmp/eTeks build, in `lib/java3d-1.6/`)
+- JOGL 2.5.0 (OpenGL integration, in `lib/java3d-1.6/`)
 
 ### Native Libraries
 Automatically includes platform-specific native libraries:
@@ -189,7 +156,7 @@ install/                        # Final distribution files
 └── portable/                            # Portable files
 
 deploy/                         # Web deployment files
-└── lib/                       # Signed JARs for applets
+└── lib/                       # Third-party dependency jars
 ```
 
 ## Development Workflow
@@ -219,29 +186,9 @@ For debugging build issues:
 ./gradlew build --profile
 ```
 
-## Migration from Ant
+## History
 
-### Task Mapping
-| Ant Target | Gradle Task | Notes |
-|------------|-------------|-------|
-| `build` | `build` | Direct mapping |
-| `application` | `application` | Direct mapping |
-| `furniture` | `furniture` | Direct mapping |
-| `textures` | `textures` | Direct mapping |
-| `examples` | `examples` | Direct mapping |
-| `help` | `help` | Direct mapping |
-| `jarExecutable` | `jarExecutable` | Direct mapping |
-| `windowsInstaller` | `windowsInstaller` | Direct mapping |
-| `macosxInstaller` | `macosxInstaller` | Direct mapping |
-| `linux32Installer` | `linux32Installer` | Direct mapping |
-| `linux64Installer` | `linux64Installer` | Direct mapping |
-| `sourceArchive` | `sourceArchive` | Direct mapping |
-| `javadoc` | `javadocArchive` | Enhanced with ZIP packaging |
-
-### Configuration Migration
-1. Copy platform-specific paths from `build.xml` to `gradle.properties`
-2. Update tool paths for your environment
-3. Configure signing credentials if needed
+This build was originally translated from an Ant `build.xml`, which has since been deleted along with the rest of the Ant-era tooling (the Gradle tasks above are now the only build entry points).
 
 ## Troubleshooting
 
@@ -269,17 +216,8 @@ which hdiutil    # macOS
 which tar        # Linux
 ```
 
-**JAR Signing Failures**
-```bash
-# Test jarsigner availability
-jarsigner -help
-# Check certificate configuration
-```
-
 ### Getting Help
-1. Check the [BUILD-MIGRATION.md](BUILD-MIGRATION.md) for detailed migration information
-2. Review Gradle documentation: https://docs.gradle.org/
-3. Compare with original `build.xml` for reference implementation
+1. Review Gradle documentation: https://docs.gradle.org/
 
 ## Performance Tips
 
@@ -311,15 +249,13 @@ This build system is part of Sweet Home 3D and follows the same licensing:
 
 When contributing to the build system:
 1. Test on all supported platforms
-2. Maintain compatibility with original Ant build
-3. Follow Gradle best practices
-4. Update documentation for any changes
+2. Follow Gradle best practices
+3. Update documentation for any changes
 
 ## Changelog
 
 ### Version 7.5
 - Initial Gradle build system
-- Complete Ant build.xml translation
 - Modern Gradle practices implementation
 - Platform-specific installer support
 - Java 3D library optimization

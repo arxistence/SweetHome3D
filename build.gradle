@@ -6,7 +6,7 @@
  *
  * Available tasks:
  * - build: Builds SweetHome3D.jar with all classes
- * - application: Builds SweetHome3D.jar without applet classes
+ * - application: Builds SweetHome3D.jar
  * - furniture: Builds Furniture.jar with furniture catalog files
  * - textures: Builds Textures.jar with texture files
  * - examples: Builds Examples.jar with example files
@@ -70,27 +70,6 @@ tasks.named('run') {
     }
 }
 
-// Platform-specific JRE paths (configure these based on your system)
-ext {
-    javaHome_windows_x86 = 'C:\\Program Files (x86)\\Java\\jre1.8.0_202'
-    javaHome_windows_x64 = 'C:\\Program Files\\OpenJDK\\zulu11.62.17-ca-jdk11.0.18-win_x64'
-    javaHome_macosx_x86_64 = '/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_x86_64.jdk/Contents/Home'
-    javaHome_macosx_arm64 = '/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_aarch64.jdk/Contents/Home'
-    javaHome_linux_x86 = 'jre1.8.0_202'
-    javaHome_linux_x64 = 'jre1.8.0_202'
-
-    // Platform-specific jarsigner paths
-    jarsigner = {
-        if (org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-            return "${javaHome_windows_x64}\\bin\\jarsigner.exe"
-        } else if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
-            return "${javaHome_macosx_x86_64}/bin/jarsigner"
-        } else {
-            return "jdk1.8.0_202/bin/jarsigner"
-        }
-    }()
-}
-
 // Source sets configuration
 sourceSets {
     main {
@@ -126,9 +105,15 @@ repositories {
     }
 }
 
+configurations {
+    jdependTool
+    jarCleanJoglItext
+}
+
 dependencies {
-    implementation fileTree(dir: 'lib', include: ['*.jar'], exclude: ['j3dcore.jar', 'j3dutils.jar', 'vecmath.jar'])
+    implementation fileTree(dir: 'lib', include: ['*.jar'])
     implementation fileTree(dir: 'lib/java3d-1.6', include: ['*.jar'])
+    implementation libs.itext
 
     // Required for compilation and runtime
     implementation files('libtest/AppleJavaExtensions.jar')
@@ -139,11 +124,12 @@ dependencies {
     testImplementation files('libtest/AppleJavaExtensions.jar')
     testImplementation files('libtest/javaAwtDesktop.jar')
     testImplementation files('libtest/jnlp.jar')
-    testImplementation files('libtest/jdepend-2.9.jar')
     testImplementation files('libtest/abbot.jar')
-    testImplementation files('libtest/jip-1.2.jar')
-    testImplementation files('libtest/jdom-1.0.jar')
-    testImplementation 'junit:junit:4.13.2'
+    testImplementation libs.jdepend
+    testImplementation libs.junit
+
+    jdependTool libs.jdepend
+    jarCleanJoglItext libs.itext
 }
 
 // Compilation configuration
@@ -219,10 +205,10 @@ tasks.register('helpJar', Jar) {
     }
 }
 
-// Build application JAR without applet classes
+// Build application JAR
 tasks.register('application', Jar) {
     group = 'build'
-    description = 'Builds SweetHome3D.jar without applet classes'
+    description = 'Builds SweetHome3D.jar'
     archiveBaseName = 'SweetHome3D'
     destinationDirectory = file('build')
     dependsOn compileJava
@@ -233,9 +219,7 @@ tasks.register('application', Jar) {
         )
     }
 
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    from(sourceSets.main.output)
 }
 
 // Build JOGL Java3D JAR with required packages only
@@ -294,10 +278,8 @@ tasks.register('jarExecutable', Jar) {
         )
     }
 
-    // Include compiled classes (excluding applet classes)
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    // Include compiled classes
+    from(sourceSets.main.output)
 
     // Include all resources (following Ant pattern)
     from(sourceSets.main.resources.srcDirs) {
@@ -324,9 +306,6 @@ tasks.register('jarExecutable', Jar) {
         include 'java3d-1.6/*.jar'
         include 'java3d-1.6/i586/gluegen-rt.jar'
         exclude 'java3d-1.6/jogl-all.jar'
-        exclude 'j3dcore.jar'
-        exclude 'j3dutils.jar'
-        exclude 'vecmath.jar'
         exclude 'macosx/gluegen-rt.jar'
         exclude 'macosx/jogl.jar'
     }.collect { zipTree(it) }) {
@@ -389,10 +368,8 @@ tasks.register('jarCleanJogl', Jar) {
         )
     }
 
-    // Include compiled classes (excluding applet classes)
-    from(sourceSets.main.output) {
-        exclude 'com/eteks/sweethome3d/applet/**'
-    }
+    // Include compiled classes
+    from(sourceSets.main.output)
 
     // Include all resources (following Ant pattern)
     from(sourceSets.main.resources.srcDirs) {
@@ -408,7 +385,6 @@ tasks.register('jarCleanJogl', Jar) {
     from(fileTree('lib').matching {
         include 'batik-svgpathparser-1.7.jar'
         include 'freehep-vectorgraphics-svg-2.1.1c.jar'
-        include 'iText-2.1.7.jar'
         include 'jeksparser-calculator.jar'
         include 'jmf.jar'
         include 'sunflow-0.07.3i.jar'
@@ -419,6 +395,15 @@ tasks.register('jarCleanJogl', Jar) {
         exclude 'META-INF/*.RSA'
         exclude 'com/sun/opengl/**'  // Exclude old JOGL
         exclude 'javax/media/opengl/**'  // Exclude old JOGL
+    }
+
+    // Include iText (migrated to Maven Central in a prior task; jarExecutable gets it via
+    // runtimeClasspath, but this task hand-picks its dependency jars so it needs its own reference)
+    from(configurations.jarCleanJoglItext.collect { zipTree(it) }) {
+        exclude 'META-INF/MANIFEST.MF'
+        exclude 'META-INF/*.SF'
+        exclude 'META-INF/*.DSA'
+        exclude 'META-INF/*.RSA'
     }
 
     // Include ONLY Java 3D 1.6 JARs (newer version) - NO legacy JOGL
@@ -534,38 +519,6 @@ tasks.register('java3dLibraries') {
     }
 }
 
-// Signing tasks
-tasks.register('signJars') {
-    group = 'build'
-    description = 'Signs JAR files for deployment'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Interactive signing - prompts for credentials
-        println 'Enter signing credentials:'
-        def alias = System.console()?.readLine('Enter alias for signature: ')
-        def providerPath = System.console()?.readLine('Enter path of jarsigner provider [provider.cfg]: ') ?: 'provider.cfg'
-        def timestampURL = System.console()?.readLine('Enter URL of timestamp authority [http://time.certum.pl/]: ') ?: 'http://time.certum.pl/'
-
-        fileTree('deploy/lib').include('**/*.jar').each { jarFile ->
-            exec {
-                executable jarsigner
-                args = [
-                    '-keystore', 'NONE',
-                    '-storepass', '0000',
-                    '-storetype', 'PKCS11',
-                    '-providerClass', 'sun.security.pkcs11.SunPKCS11',
-                    '-providerArg', providerPath,
-                    '-tsa', timestampURL,
-                    '-certchain', 'certificate.pem',
-                    jarFile.absolutePath,
-                    alias
-                ]
-            }
-        }
-    }
-}
-
 // Platform-specific installer tasks
 tasks.register('windowsInstaller') {
     group = 'installer'
@@ -661,9 +614,6 @@ tasks.register('portableArchive') {
             include 'java3d-1.6/**'
             include 'yafaray/**'
             exclude 'jmf.jar'
-            exclude 'j3dcore.jar'
-            exclude 'j3dutils.jar'
-            exclude 'vecmath.jar'
         }
 
         // Copy license files
@@ -749,7 +699,7 @@ javadoc {
 tasks.register('jdepend', JavaExec) {
     group = 'analysis'
     description = 'Launches JDepend graphical UI for dependency analysis'
-    classpath = files('libtest/jdepend-2.9.jar', 'build/classes')
+    classpath = files(configurations.jdependTool, 'build/classes')
     mainClass = 'jdepend.swingui.JDepend'
     args = ['build']
     dependsOn tasks.named('compileJava')
