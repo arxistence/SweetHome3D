@@ -84,7 +84,7 @@ sourceSets {
             exclude '**/*.cpp'
             exclude '**/*.h'
             exclude '**/package.html'
-            exclude '**/*.svg'
+            // .svg icons are runtime resources (loaded via FlatSVGIcon), not build-only design source
             // Include all properties files and resources by default
         }
     }
@@ -292,7 +292,6 @@ tasks.register('jarExecutable', Jar) {
         exclude '**/*.cpp'
         exclude '**/*.h'
         exclude '**/package.html'
-        exclude '**/*.svg'
     }
 
     // Include all dependency JARs by extracting their contents
@@ -382,7 +381,6 @@ tasks.register('jarCleanJogl', Jar) {
         exclude '**/*.cpp'
         exclude '**/*.h'
         exclude '**/package.html'
-        exclude '**/*.svg'
     }
 
     // Include only NON-JOGL dependency JARs
