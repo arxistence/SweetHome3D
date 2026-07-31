@@ -87,6 +87,7 @@ import com.eteks.sweethome3d.tools.TemporaryURLContent;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.ImportedTextureWizardController;
 import com.eteks.sweethome3d.viewcontroller.View;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Wizard panel for background image choice.
@@ -794,8 +795,17 @@ public class ImportedTextureWizardStepsPanel extends JPanel implements View {
   private void updatePreviewComponentsWithWaitImage(UserPreferences preferences) throws IOException {
     // Display a waiting image while loading
     if (waitImage == null) {
-      waitImage = ImageIO.read(ImportedTextureWizardStepsPanel.class.getResource(
-          preferences.getLocalizedString(ImportedTextureWizardStepsPanel.class, "waitIcon")));
+      URL waitIconUrl = ImportedTextureWizardStepsPanel.class.getResource(
+          preferences.getLocalizedString(ImportedTextureWizardStepsPanel.class, "waitIcon"));
+      if (waitIconUrl.getFile().endsWith(".svg")) {
+        FlatSVGIcon waitSvgIcon = new FlatSVGIcon(waitIconUrl);
+        waitImage = new BufferedImage(waitSvgIcon.getIconWidth(), waitSvgIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D waitImageGraphics = waitImage.createGraphics();
+        waitSvgIcon.paintIcon(null, waitImageGraphics, 0, 0);
+        waitImageGraphics.dispose();
+      } else {
+        waitImage = ImageIO.read(waitIconUrl);
+      }
     }
     updatePreviewComponentsImage(waitImage);
   }

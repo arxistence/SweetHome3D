@@ -48,6 +48,7 @@ import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
+import java.net.URL;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
@@ -89,6 +90,7 @@ import com.eteks.sweethome3d.tools.TemporaryURLContent;
 import com.eteks.sweethome3d.viewcontroller.BackgroundImageWizardController;
 import com.eteks.sweethome3d.viewcontroller.ContentManager;
 import com.eteks.sweethome3d.viewcontroller.View;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Wizard panel for background image choice.
@@ -653,8 +655,17 @@ public class BackgroundImageWizardStepsPanel extends JPanel implements View {
   private void updatePreviewComponentsWithWaitImage(UserPreferences preferences) throws IOException {
     // Display a waiting image while loading
     if (waitImage == null) {
-      waitImage = ImageIO.read(BackgroundImageWizardStepsPanel.class.
-          getResource(preferences.getLocalizedString(BackgroundImageWizardStepsPanel.class, "waitIcon")));
+      URL waitIconUrl = BackgroundImageWizardStepsPanel.class.
+          getResource(preferences.getLocalizedString(BackgroundImageWizardStepsPanel.class, "waitIcon"));
+      if (waitIconUrl.getFile().endsWith(".svg")) {
+        FlatSVGIcon waitSvgIcon = new FlatSVGIcon(waitIconUrl);
+        waitImage = new BufferedImage(waitSvgIcon.getIconWidth(), waitSvgIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+        Graphics2D waitImageGraphics = waitImage.createGraphics();
+        waitSvgIcon.paintIcon(null, waitImageGraphics, 0, 0);
+        waitImageGraphics.dispose();
+      } else {
+        waitImage = ImageIO.read(waitIconUrl);
+      }
     }
     updatePreviewComponentsImage(waitImage);
   }

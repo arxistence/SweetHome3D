@@ -99,7 +99,7 @@ public class MultipleLevelsPlanPanel extends JPanel implements PlanView, Printab
   private static final String ONE_LEVEL_PANEL_NAME = "oneLevelPanel";
   private static final String MULTIPLE_LEVELS_PANEL_NAME = "multipleLevelsPanel";
 
-  private static final ImageIcon sameElevationIcon = SwingTools.getScaledImageIcon(MultipleLevelsPlanPanel.class.getResource("resources/sameElevation.png"));
+  private static final ImageIcon sameElevationIcon = SwingTools.getScaledImageIcon(MultipleLevelsPlanPanel.class.getResource("resources/sameElevation.svg"));
 
   private JComponent  planComponent;
   private JScrollPane planScrollPane;

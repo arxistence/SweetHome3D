@@ -764,8 +764,8 @@ public class VideoPanel extends JPanel implements DialogView {
     timeSpinnerModel.addChangeListener(dateTimeChangeListener);
 
     this.dayNightLabel = new JLabel();
-    final ImageIcon dayIcon = SwingTools.getScaledImageIcon(VideoPanel.class.getResource("resources/day.png"));
-    final ImageIcon nightIcon = SwingTools.getScaledImageIcon(VideoPanel.class.getResource("resources/night.png"));
+    final ImageIcon dayIcon = SwingTools.getScaledImageIcon(VideoPanel.class.getResource("resources/day.svg"));
+    final ImageIcon nightIcon = SwingTools.getScaledImageIcon(VideoPanel.class.getResource("resources/night.svg"));
     PropertyChangeListener dayNightListener = new PropertyChangeListener() {
         public void propertyChange(PropertyChangeEvent ev) {
           if (home.getCompass().getSunElevation(
