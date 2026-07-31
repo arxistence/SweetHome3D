@@ -121,7 +121,12 @@ public class ResourceAction extends AbstractAction {
    */
   private static Icon createIcon(Class<?> resourceClass, String iconName) {
     if (iconName.endsWith(".svg")) {
-      return new FlatSVGIcon(resourceClass.getResource(iconName));
+      // Build the absolute classloader resource path (rather than passing a resolved URL)
+      // so FlatSVGIcon keeps track of its resource name: it needs that name later, lazily,
+      // to look up a possible hand-authored "*_dark.svg" sibling each time the icon is painted.
+      String resourcePackagePath = resourceClass.getPackage().getName().replace('.', '/');
+      String absoluteIconName = resourcePackagePath + '/' + iconName;
+      return new FlatSVGIcon(absoluteIconName, resourceClass.getClassLoader());
     } else {
       return SwingTools.getScaledImageIcon(resourceClass.getResource(iconName));
     }
