@@ -46,14 +46,12 @@ import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowStateListener;
-import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.imageio.ImageIO;
 import javax.media.j3d.Canvas3D;
 import javax.swing.AbstractAction;
 import javax.swing.JCheckBoxMenuItem;
@@ -339,11 +337,10 @@ class MacOSXConfiguration {
     if (!Boolean.getBoolean("sweethome3d.bundle")) {
       try {
         String iconPath = homeApplication.getUserPreferences().getLocalizedString(HomePane.class, "about.icon");
-        Image icon = ImageIO.read(HomePane.class.getResource(iconPath));
+        Image icon = SwingTools.getScaledImageIcon(HomePane.class.getResource(iconPath)).getImage();
         macosxApplication.setDockIconImage(icon);
       } catch (NoSuchMethodError ex) {
         // Ignore icon change if setDockIconImage isn't available
-      } catch (IOException ex) {
       }
     }
   }
