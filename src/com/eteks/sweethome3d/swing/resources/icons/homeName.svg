@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>icons/homeName</title>
+    <g id="icons/homeName" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" fill="#DDDDDD" fill-rule="nonzero" opacity="0">
+            <g id="Rectangle-Copy-25">
+                <rect x="0" y="0" width="16" height="16"></rect>
+            </g>
+        </g>
+        <polygon id="Page" stroke="#000000" fill="#FFFFFF" fill-rule="nonzero" stroke-linecap="round" stroke-linejoin="round" points="1.5 0.5 9.5 0.5 14.5 5.5 14.5 15.5 1.5 15.5"></polygon>
+        <polyline id="Corner" stroke="#000000" fill="#FFFFFF" fill-rule="nonzero" stroke-linecap="round" stroke-linejoin="round" points="9.5 0.5 9.5 5.5 14.5 5.5"></polyline>
+        <g id="Pencil" transform="translate(4.400000, 6.700000)" fill-rule="nonzero" stroke="#000000" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6.9,3.89032258 L1.5,9.29032258 L1.5,6.29032258 L-1.5,6.29032258 L3.9,0.890322581 C4.5017316,0.189955547 5.32207792,0.356955881 6.36103896,1.39132358 C7.4,2.42569128 7.5796537,3.25869095 6.9,3.89032258 Z" id="Path-49" fill="#FFFFFF"></path>
+            <polygon id="Path" fill="#FFFFFF" points="-1.5 6.29032258 -2.3 10.0903226 1.5 9.29032258 1.5 6.29032258"></polygon>
+            <polygon id="Path-52" fill="#000000" points="-1.7 8.09032258 -0.2 9.59032258 -2.2 10.0903226"></polygon>
+            <line x1="1.5" y1="6.29032258" x2="6.2" y2="1.59032258" id="Path-53"></line>
+        </g>
+    </g>
+</svg>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>icons/homeFile</title>
+    <g id="icons/homeFile" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Group" fill="#DDDDDD" fill-rule="nonzero" opacity="0">
+            <g id="Rectangle-Copy-25">
+                <rect x="0" y="0" width="16" height="16"></rect>
+            </g>
+        </g>
+        <polygon id="Page" stroke="#000000" fill="#FFFFFF" fill-rule="nonzero" stroke-linecap="round" stroke-linejoin="round" points="1.5 0.5 9.5 0.5 14.5 5.5 14.5 15.5 1.5 15.5"></polygon>
+        <polyline id="Corner" stroke="#000000" fill="#FFFFFF" fill-rule="nonzero" stroke-linecap="round" stroke-linejoin="round" points="9.5 0.5 9.5 5.5 14.5 5.5"></polyline>
+        <path id="House" stroke="#000000" fill="#000000" fill-rule="nonzero" stroke-linecap="round" stroke-linejoin="round" d="M8,7 L12,10.2 L10.8,10.2 L10.8,13.5 L5.2,13.5 L5.2,10.2 L4,10.2 Z"></path>
+    </g>
+</svg>
