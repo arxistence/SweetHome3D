@@ -116,6 +116,7 @@ import com.eteks.sweethome3d.model.Polyline;
 import com.eteks.sweethome3d.model.TextureImage;
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Gathers some useful tools for Swing.
@@ -1286,6 +1287,12 @@ public class SwingTools {
    * Returns an image icon scaled according to the value returned by {@link #getResolutionScale()}.
    */
   public static ImageIcon getScaledImageIcon(URL imageUrl) {
+    if (imageUrl.getFile().endsWith(".svg")) {
+      // SVG icons are vector based and recolored automatically for dark themes
+      // via FlatSVGIcon's global ColorFilter (configured once at startup in SweetHome3D)
+      // so they don't need the raster @2x scaling logic below
+      return new FlatSVGIcon(imageUrl);
+    }
     float resolutionScale = getResolutionScale();
     if (resolutionScale == 1) {
       return getImageIcon(imageUrl);

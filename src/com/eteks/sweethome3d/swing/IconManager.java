@@ -38,6 +38,8 @@ import javax.swing.ImageIcon;
 
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.tools.ResourceURLContent;
+import com.eteks.sweethome3d.tools.URLContent;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Singleton managing icons cache.
@@ -55,8 +57,8 @@ public class IconManager {
   private ExecutorService                        iconsLoader;
 
   private IconManager() {
-    this.errorIconContent = new ResourceURLContent(IconManager.class, "resources/error.png");
-    this.waitIconContent = new ResourceURLContent(IconManager.class, "resources/wait.png");
+    this.errorIconContent = new ResourceURLContent(IconManager.class, "resources/error.svg");
+    this.waitIconContent = new ResourceURLContent(IconManager.class, "resources/wait.svg");
     this.icons = Collections.synchronizedMap(new WeakHashMap<Content, Map<Integer, Icon>>());
   }
 
@@ -201,6 +203,15 @@ public class IconManager {
    * @param errorIcon the returned icon in case of error
    */
   private Icon createIcon(Content content, int height, Icon errorIcon) {
+    if (content instanceof URLContent
+        && ((URLContent)content).getURL().getFile().endsWith(".svg")) {
+      // SVG icons are vector based and recolored automatically for dark themes
+      // via FlatSVGIcon's global ColorFilter (configured once at startup in SweetHome3D)
+      FlatSVGIcon svgIcon = new FlatSVGIcon(((URLContent)content).getURL());
+      return height == -1
+          ? svgIcon
+          : svgIcon.derive(svgIcon.getIconWidth() * height / svgIcon.getIconHeight(), height);
+    }
     try {
       // Read the icon of the piece
       InputStream contentStream = content.openStream();
