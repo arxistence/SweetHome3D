@@ -388,11 +388,11 @@ public class FurnitureCatalogTree extends JTree implements View {
     public Component getTreeCellRendererComponent(JTree tree,
         Object value, boolean selected, boolean expanded,
         boolean leaf, int row, boolean hasFocus) {
-      // Configure name label with its icon, background and focus colors
-      this.nameLabel.getTreeCellRendererComponent(
-          tree, value, selected, expanded, leaf, row, hasFocus);
-      // Initialize fonts if not done
+      // Initialize fonts if not done (before configuring nameLabel)
       if (this.defaultFont == null) {
+        // Temporarily configure nameLabel to get its default font
+        this.nameLabel.getTreeCellRendererComponent(
+            tree, value, selected, expanded, leaf, row, hasFocus);
         this.defaultFont = this.nameLabel.getFont();
         String bodyRule = "body { font-family: " + this.defaultFont.getFamily() + "; "
             + "font-size: " + this.defaultFont.getSize() + "pt; "
@@ -401,10 +401,15 @@ public class FurnitureCatalogTree extends JTree implements View {
         this.modifiablePieceFont =
             new Font(this.defaultFont.getFontName(), Font.ITALIC, this.defaultFont.getSize());
       }
-      // If node is a category, change label text
+
+      // Configure name label with its icon, background and focus colors
+      this.nameLabel.getTreeCellRendererComponent(
+          tree, value, selected, expanded, leaf, row, hasFocus);
+
+      // If node is a category, change label text and font
       if (value instanceof FurnitureCategory) {
         this.nameLabel.setText(((FurnitureCategory)value).getName());
-        this.nameLabel.setFont(this.defaultFont);
+        this.nameLabel.setFont(this.defaultFont.deriveFont(Font.BOLD));
         this.informationPane.setVisible(false);
       }
       // Else if node is a piece of furniture, change label text and icon

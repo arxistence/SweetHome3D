@@ -20,6 +20,7 @@
 package com.eteks.sweethome3d.junit;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.text.Collator;
 import java.util.List;
 import java.util.Locale;
@@ -82,6 +83,27 @@ public class CatalogTreeTest extends TestCase {
 
     // 4. Check alphabetical order of categories and furniture in tree
     assertTreeIsSorted(tree);
+  }
+
+  public void testCategoryRowsAreBold() {
+    Locale.setDefault(Locale.US);
+    FurnitureCatalog catalog = new DefaultFurnitureCatalog();
+    JTree tree = new FurnitureCatalogTree(catalog);
+    TreeModel model = tree.getModel();
+    Object root = model.getRoot();
+    Object firstCategory = model.getChild(root, 0);
+    Object firstPiece = model.getChild(firstCategory, 0);
+
+    TreeCellRenderer renderer = tree.getCellRenderer();
+    Component categoryLabel = ((JComponent)renderer.getTreeCellRendererComponent(
+        tree, firstCategory, false, true, false, 0, false)).getComponent(0);
+    Component pieceLabel = ((JComponent)renderer.getTreeCellRendererComponent(
+        tree, firstPiece, false, false, true, 1, false)).getComponent(0);
+
+    assertTrue("Category row should be bold",
+        ((JLabel)categoryLabel).getFont().isBold());
+    assertFalse("Furniture row should not be bold",
+        ((JLabel)pieceLabel).getFont().isBold());
   }
 
   public void assertTreeIsSorted(JTree tree) {
