@@ -114,7 +114,6 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
   private ListSelectionListener listSelectionListener;
   private JLabel                categoryFilterLabel;
   private JComboBox             categoryFilterComboBox;
-  private JLabel                searchLabel;
   private JTextField            searchTextField;
   private JList                 catalogFurnitureList;
 
@@ -276,8 +275,6 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
         }
       });
 
-    this.searchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
-        FurnitureCatalogListPanel.class, "searchLabel.text"));
     this.searchTextField = new JTextField(5);
     this.searchTextField.getDocument().addDocumentListener(new DocumentListener() {
         public void changedUpdate(DocumentEvent ev) {
@@ -305,9 +302,11 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
           searchTextField.setText("");
         }
       });
-    if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      this.searchTextField.putClientProperty("JTextField.variant", "search");
-    }
+    this.searchTextField.putClientProperty("JTextField.placeholderText",
+        preferences.getLocalizedString(FurnitureCatalogListPanel.class, "searchTextField.placeholderText"));
+    this.searchTextField.putClientProperty("JTextField.showClearButton", true);
+    this.searchTextField.putClientProperty("JTextField.leadingIcon",
+        SwingTools.getScaledImageIcon(FurnitureCatalogListPanel.class.getResource("resources/actions/edit-find.svg")));
 
     PreferencesChangeListener preferencesChangeListener = new PreferencesChangeListener(this);
     preferences.addPropertyChangeListener(UserPreferences.Property.LANGUAGE, preferencesChangeListener);
@@ -341,8 +340,8 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
       } else {
         furnitureCatalogPanel.categoryFilterLabel.setText(SwingTools.getLocalizedLabelText(preferences,
             FurnitureCatalogListPanel.class, "categoryFilterLabel.text"));
-        furnitureCatalogPanel.searchLabel.setText(SwingTools.getLocalizedLabelText(preferences,
-            FurnitureCatalogListPanel.class, "searchLabel.text"));
+        furnitureCatalogPanel.searchTextField.putClientProperty("JTextField.placeholderText",
+            preferences.getLocalizedString(FurnitureCatalogListPanel.class, "searchTextField.placeholderText"));
         furnitureCatalogPanel.setMnemonics(preferences);
         furnitureCatalogPanel.invalidate();
         // Categories listed in combo box are updated through collectionChanged
@@ -499,9 +498,6 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
       this.categoryFilterLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
           FurnitureCatalogListPanel.class, "categoryFilterLabel.mnemonic")).getKeyCode());
       this.categoryFilterLabel.setLabelFor(this.categoryFilterComboBox);
-      this.searchLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-          FurnitureCatalogListPanel.class, "searchLabel.mnemonic")).getKeyCode());
-      this.searchLabel.setLabelFor(this.searchTextField);
     }
   }
 
@@ -528,18 +524,9 @@ public class FurnitureCatalogListPanel extends JPanel implements View {
         1, 0, 1, 1, 0, 0, GridBagConstraints.LINE_START,
         GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
     // Second row
-    if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      add(this.searchTextField, new GridBagConstraints(
-          0, 1, 2, 1, 0, 0, GridBagConstraints.LINE_START,
-          GridBagConstraints.HORIZONTAL, new Insets(0, 0, Math.round(3 * SwingTools.getResolutionScale()), 0), 0, 0));
-    } else {
-      add(this.searchLabel, new GridBagConstraints(
-          0, 1, 1, 1, 0, 0, labelAlignment,
-          GridBagConstraints.NONE, labelInsets, 0, 0));
-      add(this.searchTextField, new GridBagConstraints(
-          1, 1, 1, 1, 0, 0, GridBagConstraints.LINE_START,
-          GridBagConstraints.HORIZONTAL, componentInsets, 0, 0));
-    }
+    add(this.searchTextField, new GridBagConstraints(
+        0, 1, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+        GridBagConstraints.HORIZONTAL, new Insets(0, 0, Math.round(3 * SwingTools.getResolutionScale()), 0), 0, 0));
     // Last row
     final JScrollPane listScrollPane = SwingTools.createScrollPane(this.catalogFurnitureList);
     listScrollPane.getVerticalScrollBar().addAdjustmentListener(
