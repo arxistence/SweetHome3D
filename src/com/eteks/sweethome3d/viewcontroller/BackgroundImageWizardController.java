@@ -371,7 +371,7 @@ public class BackgroundImageWizardController extends WizardController
    * that will display a different component depending on their class name.
    */
   protected abstract class BackgroundImageWizardStepState extends WizardControllerStepState {
-    private URL icon = BackgroundImageWizardController.class.getResource("resources/backgroundImageWizard.svg");
+    private URL icon = BackgroundImageWizardController.class.getResource("resources/backgroundImageWizard.png");
 
     public abstract Step getStep();
 

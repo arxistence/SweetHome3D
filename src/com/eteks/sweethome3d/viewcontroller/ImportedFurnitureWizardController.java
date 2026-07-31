@@ -815,7 +815,7 @@ public class ImportedFurnitureWizardController extends WizardController
    * that will display a different component depending on their class name.
    */
   protected abstract class ImportedFurnitureWizardStepState extends WizardControllerStepState {
-    private URL icon = ImportedFurnitureWizardController.class.getResource("resources/importedFurnitureWizard.svg");
+    private URL icon = ImportedFurnitureWizardController.class.getResource("resources/importedFurnitureWizard.png");
 
     public abstract Step getStep();
 
