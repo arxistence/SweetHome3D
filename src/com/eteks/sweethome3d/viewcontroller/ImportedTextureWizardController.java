@@ -327,7 +327,7 @@ public class ImportedTextureWizardController extends WizardController
    * that will display a different component depending on their class name.
    */
   protected abstract class ImportedTextureWizardStepState extends WizardControllerStepState {
-    private URL icon = ImportedTextureWizardController.class.getResource("resources/importedTextureWizard.png");
+    private URL icon = ImportedTextureWizardController.class.getResource("resources/importedTextureWizard.svg");
 
     public abstract Step getStep();
 
