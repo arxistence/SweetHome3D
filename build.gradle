@@ -84,7 +84,7 @@ sourceSets {
             exclude '**/*.cpp'
             exclude '**/*.h'
             exclude '**/package.html'
-            exclude '**/*.svg'
+            // .svg icons are runtime resources (loaded via FlatSVGIcon), not build-only design source
             // Include all properties files and resources by default
         }
     }
@@ -117,6 +117,7 @@ dependencies {
     implementation fileTree(dir: 'lib/java3d-1.6', include: ['*.jar'])
     implementation libs.itext
     implementation libs.flatlaf
+    implementation libs.flatlafExtras
 
     // Required for compilation and runtime
     implementation files('libtest/AppleJavaExtensions.jar')
@@ -291,7 +292,6 @@ tasks.register('jarExecutable', Jar) {
         exclude '**/*.cpp'
         exclude '**/*.h'
         exclude '**/package.html'
-        exclude '**/*.svg'
     }
 
     // Include all dependency JARs by extracting their contents
@@ -381,7 +381,6 @@ tasks.register('jarCleanJogl', Jar) {
         exclude '**/*.cpp'
         exclude '**/*.h'
         exclude '**/package.html'
-        exclude '**/*.svg'
     }
 
     // Include only NON-JOGL dependency JARs

@@ -9,3 +9,4 @@ junit = { module = "junit:junit", version.ref = "junit" }
 itext = { module = "com.lowagie:itext", version.ref = "itext" }
 jdepend = { module = "jdepend:jdepend", version.ref = "jdepend" }
 flatlaf = { module = "com.formdev:flatlaf", version.ref = "flatlaf" }
+flatlafExtras = { module = "com.formdev:flatlaf-extras", version.ref = "flatlaf" }

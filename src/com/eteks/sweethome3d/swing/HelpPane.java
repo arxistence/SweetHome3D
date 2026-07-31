@@ -46,7 +46,6 @@ import java.util.Locale;
 
 import javax.swing.Action;
 import javax.swing.ActionMap;
-import javax.swing.ImageIcon;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
@@ -533,7 +532,7 @@ public class HelpPane extends JRootPane implements HelpView {
           }
         };
       // Update frame image and title
-      this.frame.setIconImage(new ImageIcon(HelpPane.class.getResource(
+      this.frame.setIconImage(SwingTools.getScaledImageIcon(HelpPane.class.getResource(
           this.preferences.getLocalizedString(HelpPane.class, "helpFrame.icon"))).getImage());
       this.frame.setTitle(this.preferences.getLocalizedString(HelpPane.class, "helpFrame.title"));
       this.frame.applyComponentOrientation(ComponentOrientation.getOrientation(Locale.getDefault()));

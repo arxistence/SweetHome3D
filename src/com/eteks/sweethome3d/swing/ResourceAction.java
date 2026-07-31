@@ -30,12 +30,14 @@ import java.util.Locale;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.Icon;
 import javax.swing.KeyStroke;
 import javax.swing.Timer;
 import javax.swing.event.SwingPropertyChangeSupport;
 
 import com.eteks.sweethome3d.model.UserPreferences;
 import com.eteks.sweethome3d.tools.OperatingSystem;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * An action with properties read from a resource bundle file.
@@ -112,6 +114,25 @@ public class ResourceAction extends AbstractAction {
   }
 
   /**
+   * Returns the icon read from <code>iconName</code>: an SVG icon if the resource
+   * name ends with ".svg" (recolored automatically for dark themes via
+   * FlatSVGIcon's global ColorFilter, configured once at startup in SweetHome3D),
+   * otherwise the existing raster icon path.
+   */
+  private static Icon createIcon(Class<?> resourceClass, String iconName) {
+    if (iconName.endsWith(".svg")) {
+      // Build the absolute classloader resource path (rather than passing a resolved URL)
+      // so FlatSVGIcon keeps track of its resource name: it needs that name later, lazily,
+      // to look up a possible hand-authored "*_dark.svg" sibling each time the icon is painted.
+      String resourcePackagePath = resourceClass.getPackage().getName().replace('.', '/');
+      String absoluteIconName = resourcePackagePath + '/' + iconName;
+      return new FlatSVGIcon(absoluteIconName, resourceClass.getClassLoader());
+    } else {
+      return SwingTools.getScaledImageIcon(resourceClass.getResource(iconName));
+    }
+  }
+
+  /**
    * Reads from the properties of this action.
    */
   private void readActionProperties(UserPreferences preferences,
@@ -129,12 +150,12 @@ public class ResourceAction extends AbstractAction {
 
     String smallIcon = getOptionalString(preferences, resourceClass, propertyPrefix + SMALL_ICON, false);
     if (smallIcon != null) {
-      putValue(SMALL_ICON, SwingTools.getScaledImageIcon(resourceClass.getResource(smallIcon)));
+      putValue(SMALL_ICON, createIcon(resourceClass, smallIcon));
     }
 
     String toolBarIcon = getOptionalString(preferences, resourceClass, propertyPrefix + TOOL_BAR_ICON, false);
     if (toolBarIcon != null) {
-      putValue(TOOL_BAR_ICON, SwingTools.getScaledImageIcon(resourceClass.getResource(toolBarIcon)));
+      putValue(TOOL_BAR_ICON, createIcon(resourceClass, toolBarIcon));
     }
 
     String propertyKey = propertyPrefix + ACCELERATOR_KEY;

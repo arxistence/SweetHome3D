@@ -2316,8 +2316,8 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
       // Return a table renderer that displays the icon matching current sort
       return new TableCellRenderer() {
           private TableCellRenderer headerRenderer;
-          private ImageIcon ascendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/ascending.png"));
-          private ImageIcon descendingSortIcon = new ImageIcon(FurnitureTable.class.getResource("resources/descending.png"));
+          private ImageIcon ascendingSortIcon = SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/ascending.svg"));
+          private ImageIcon descendingSortIcon = SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/descending.svg"));
 
           public Component getTableCellRendererComponent(JTable table,
                Object value, boolean isSelected, boolean hasFocus, int row, int column) {
@@ -2354,7 +2354,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
    */
   private static class TreeTableNameCellRenderer implements TableCellRenderer {
     private static final ResourceURLContent GROUP_ICON_CONTENT =
-        new ResourceURLContent(FurnitureTable.class, "resources/groupIcon.png");
+        new ResourceURLContent(FurnitureTable.class, "resources/groupIcon.svg");
     private PanelWithInformationIcon groupRendererComponent;
     private JTree                    nameRendererTree;
     private int                      renderedRow;
@@ -2582,7 +2582,7 @@ public class FurnitureTable extends JTable implements FurnitureView, Printable {
      */
     private static class PanelWithInformationIcon extends JPanel {
       private static final ImageIcon INFORMATION_ICON =
-          SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/furnitureInformation.png"));
+          SwingTools.getScaledImageIcon(FurnitureTable.class.getResource("resources/furnitureInformation.svg"));
       private JLabel informationLabel;
 
       public PanelWithInformationIcon() {

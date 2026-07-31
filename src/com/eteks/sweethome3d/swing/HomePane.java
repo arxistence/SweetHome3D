@@ -4698,7 +4698,7 @@ public class HomePane extends JRootPane implements HomeView {
     updateTimer.start();
 
     String title = this.preferences.getLocalizedString(HomePane.class, "about.title");
-    Icon   icon  = new ImageIcon(HomePane.class.getResource(
+    Icon   icon  = SwingTools.getScaledImageIcon(HomePane.class.getResource(
         this.preferences.getLocalizedString(HomePane.class, "about.icon")));
     try {
       String close = this.preferences.getLocalizedString(HomePane.class, "about.close");

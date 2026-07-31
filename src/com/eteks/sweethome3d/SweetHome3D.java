@@ -93,6 +93,7 @@ import com.eteks.sweethome3d.viewcontroller.HomeController;
 import com.eteks.sweethome3d.viewcontroller.View;
 import com.eteks.sweethome3d.viewcontroller.ViewFactory;
 import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Sweet Home 3D main class. Sweet Home 3D accepts the parameter
@@ -583,6 +584,12 @@ public class SweetHome3D extends HomeApplication {
    */
   private void initLookAndFeel() {
     try {
+      FlatSVGIcon.ColorFilter iconColorFilter = FlatSVGIcon.ColorFilter.getInstance();
+      iconColorFilter.add(java.awt.Color.BLACK, java.awt.Color.BLACK, new java.awt.Color(0xBF, 0xBF, 0xBF));
+      iconColorFilter.add(java.awt.Color.WHITE, java.awt.Color.WHITE, new java.awt.Color(0x3C, 0x3F, 0x41));
+      iconColorFilter.add(new java.awt.Color(0xA4, 0xA4, 0xA4), new java.awt.Color(0xA4, 0xA4, 0xA4), new java.awt.Color(0x8A, 0x8A, 0x8A));
+      iconColorFilter.add(new java.awt.Color(0x75, 0x75, 0x75), new java.awt.Color(0x75, 0x75, 0x75), new java.awt.Color(0x9A, 0x9A, 0x9A));
+      iconColorFilter.add(new java.awt.Color(0x8D, 0x8D, 0x8D), new java.awt.Color(0x8D, 0x8D, 0x8D), new java.awt.Color(0x92, 0x92, 0x92));
       applyTheme(getUserPreferences().getTheme());
       SwingTools.updateSwingResourceLanguage(getUserPreferences());
     } catch (Exception ex) {

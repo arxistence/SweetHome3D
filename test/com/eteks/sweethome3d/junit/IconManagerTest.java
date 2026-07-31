@@ -38,6 +38,7 @@ import junit.framework.TestCase;
 import com.eteks.sweethome3d.model.Content;
 import com.eteks.sweethome3d.swing.IconManager;
 import com.eteks.sweethome3d.tools.URLContent;
+import com.formdev.flatlaf.extras.FlatSVGIcon;
 
 /**
  * Tests IconManager class.
@@ -142,11 +143,19 @@ public class IconManagerTest extends TestCase {
    * Asserts icons in parameter at same size contains the same image data.
    */
   private void assertEquals(String message, URL expectedIconURL, Icon actualIcon) {
-    ImageIcon expectedIcon = new ImageIcon(expectedIconURL);
-    Image scaledExpectedImage = expectedIcon.getImage()
-        .getScaledInstance(actualIcon.getIconWidth(),
-            actualIcon.getIconHeight(), Image.SCALE_SMOOTH);
-    assertTrue(message, Arrays.equals(getIconData(new ImageIcon(scaledExpectedImage)),
+    Icon expectedIcon;
+    if (expectedIconURL.getFile().endsWith(".svg")) {
+      // SVG icons aren't decodable by a plain ImageIcon: read them the same way
+      // IconManager does, i.e. through FlatSVGIcon, then scale to actualIcon's size
+      expectedIcon = new FlatSVGIcon(expectedIconURL).derive(
+          actualIcon.getIconWidth(), actualIcon.getIconHeight());
+    } else {
+      Image scaledExpectedImage = new ImageIcon(expectedIconURL).getImage()
+          .getScaledInstance(actualIcon.getIconWidth(),
+              actualIcon.getIconHeight(), Image.SCALE_SMOOTH);
+      expectedIcon = new ImageIcon(scaledExpectedImage);
+    }
+    assertTrue(message, Arrays.equals(getIconData(expectedIcon),
                                       getIconData(actualIcon)));
   }
 
