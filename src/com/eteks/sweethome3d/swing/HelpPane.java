@@ -89,7 +89,6 @@ public class HelpPane extends JRootPane implements HelpView {
 
   private final UserPreferences preferences;
   private JFrame                frame;
-  private JLabel                searchLabel;
   private JTextField            searchTextField;
   private JEditorPane           helpEditorPane;
 
@@ -98,7 +97,6 @@ public class HelpPane extends JRootPane implements HelpView {
     this.preferences = preferences;
     createActions(preferences, controller);
     createComponents(preferences, controller);
-    setMnemonics(preferences);
     layoutComponents();
     addLanguageListener(preferences);
     if (controller != null) {
@@ -213,9 +211,9 @@ public class HelpPane extends JRootPane implements HelpView {
           helpPane.helpEditorPane.setComponentOrientation("RTL".equals(preferences.getLocalizedString(HelpPane.class, "helpEditorPane.textOrientation"))
               ? ComponentOrientation.RIGHT_TO_LEFT : ComponentOrientation.LEFT_TO_RIGHT);
         }
-        helpPane.searchLabel.setText(SwingTools.getLocalizedLabelText(preferences, HelpPane.class, "searchLabel.text"));
+        helpPane.searchTextField.putClientProperty("JTextField.placeholderText",
+            preferences.getLocalizedString(HelpPane.class, "searchTextField.placeholderText"));
         helpPane.searchTextField.setText("");
-        helpPane.setMnemonics(preferences);
       }
     }
   }
@@ -224,14 +222,12 @@ public class HelpPane extends JRootPane implements HelpView {
    * Creates the components displayed by this view.
   */
   private void createComponents(UserPreferences preferences, final HelpController controller) {
-    this.searchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences, HelpPane.class, "searchLabel.text"));
     this.searchTextField = new JTextField(12);
-    // Under Mac OS 10.5 use client properties to use search text field look and feel
-    if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      this.searchTextField.putClientProperty("JTextField.variant", "search");
-      this.searchTextField.putClientProperty("JTextField.Search.FindAction",
-          getActionMap().get(ActionType.SEARCH));
-    }
+    this.searchTextField.putClientProperty("JTextField.placeholderText",
+        preferences.getLocalizedString(HelpPane.class, "searchTextField.placeholderText"));
+    this.searchTextField.putClientProperty("JTextField.showClearButton", true);
+    this.searchTextField.putClientProperty("JTextField.leadingIcon",
+        SwingTools.getScaledImageIcon(HelpPane.class.getResource("resources/actions/edit-find.svg")));
     this.searchTextField.addActionListener(getActionMap().get(ActionType.SEARCH));
     // Enable search only if search text field isn't empty
     this.searchTextField.getDocument().addDocumentListener(new DocumentListener() {
@@ -388,17 +384,6 @@ public class HelpPane extends JRootPane implements HelpView {
   }
 
   /**
-   * Sets components mnemonics and label / component associations.
-   */
-  private void setMnemonics(UserPreferences preferences) {
-    if (!OperatingSystem.isMacOSX()) {
-      this.searchLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(
-          preferences.getLocalizedString(HelpPane.class, "searchLabel.mnemonic")).getKeyCode());
-      this.searchLabel.setLabelFor(this.searchTextField);
-    }
-  }
-
-  /**
    * Layouts the components displayed by this view.
    */
   private void layoutComponents() {
@@ -423,21 +408,13 @@ public class HelpPane extends JRootPane implements HelpView {
             GridBagConstraints.NONE, new Insets(0, 0, 0, 0), 0, 0));
 
     int standardGap = Math.round(5 * SwingTools.getResolutionScale());
-    if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      toolBar.add(this.searchLabel,
-          new GridBagConstraints(3, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
-              GridBagConstraints.NONE, new Insets(0, 0, 0, standardGap), 0, 0));
-    }
     toolBar.add(this.searchTextField,
         new GridBagConstraints(4, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
             GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
     this.searchTextField.setMaximumSize(this.searchTextField.getPreferredSize());
-    // Ignore search button under Mac OS X 10.5 (it's included in the search field)
-    if (!OperatingSystem.isMacOSXLeopardOrSuperior()) {
-      toolBar.add(new JButton(actions.get(ActionType.SEARCH)),
-          new GridBagConstraints(5, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
-              GridBagConstraints.NONE, new Insets(0, standardGap, 0, 0), 0, 0));
-    }
+    toolBar.add(new JButton(actions.get(ActionType.SEARCH)),
+        new GridBagConstraints(5, 0, 1, 1, 0, 0, GridBagConstraints.CENTER,
+            GridBagConstraints.NONE, new Insets(0, standardGap, 0, 0), 0, 0));
     // Remove focusable property on buttons
     for (int i = 0, n = toolBar.getComponentCount(); i < n; i++) {
       Component component = toolBar.getComponent(i);

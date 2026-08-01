@@ -203,7 +203,6 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
     private TextureChoiceController controller;
 
     private TextureImage            previewTexture;
-    private JLabel                  searchLabel;
     private JTextField              searchTextField;
     private JLabel                  chosenTextureLabel;
     private ScaledImageComponent    texturePreviewComponent;
@@ -288,8 +287,6 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
             }
           });
 
-      this.searchLabel = new JLabel(SwingTools.getLocalizedLabelText(preferences,
-          TextureChoiceComponent.class, "searchLabel.text"));
       this.searchTextField = new JTextField(5);
       this.searchTextField.getDocument().addDocumentListener(new DocumentListener() {
           public void changedUpdate(DocumentEvent ev) {
@@ -319,9 +316,11 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
             searchTextField.setText("");
           }
         });
-      if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-        this.searchTextField.putClientProperty("JTextField.variant", "search");
-      }
+      this.searchTextField.putClientProperty("JTextField.placeholderText",
+          preferences.getLocalizedString(TextureChoiceComponent.class, "searchTextField.placeholderText"));
+      this.searchTextField.putClientProperty("JTextField.showClearButton", true);
+      this.searchTextField.putClientProperty("JTextField.leadingIcon",
+          SwingTools.getScaledImageIcon(TextureChoiceComponent.class.getResource("resources/actions/edit-find.svg")));
       this.searchTextField.getInputMap(JComponent.WHEN_FOCUSED).remove(KeyStroke.getKeyStroke("ESCAPE"));
 
       this.chosenTextureLabel = new JLabel(preferences.getLocalizedString(
@@ -685,9 +684,6 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
         this.availableTexturesLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             TextureChoiceComponent.class, "availableTexturesLabel.mnemonic")).getKeyCode());
         this.availableTexturesLabel.setLabelFor(this.availableTexturesList);
-        this.searchLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
-            TextureChoiceComponent.class, "searchLabel.mnemonic")).getKeyCode());
-        this.searchLabel.setLabelFor(this.searchTextField);
         this.xOffsetLabel.setDisplayedMnemonic(KeyStroke.getKeyStroke(preferences.getLocalizedString(
             TextureChoiceComponent.class, "xOffsetLabel.mnemonic")).getKeyCode());
         this.xOffsetLabel.setLabelFor(this.xOffsetSpinner);
@@ -734,18 +730,9 @@ public class TextureChoiceComponent extends JButton implements TextureChoiceView
           GridBagConstraints.BOTH, new Insets(0, 0, 3, 0), 0, 0));
       SwingTools.installFocusBorder(this.availableTexturesList);
       // Third row
-      if (OperatingSystem.isMacOSXLeopardOrSuperior()) {
-        leftPanel.add(this.searchTextField, new GridBagConstraints(
-            0, 7, 2, 1, 0, 0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
-      } else {
-        leftPanel.add(this.searchLabel, new GridBagConstraints(
-            0, 7, 1, 1, 0, 0, labelAlignment,
-            GridBagConstraints.NONE, new Insets(2, 0, 0, 3), 0, 0));
-        leftPanel.add(this.searchTextField, new GridBagConstraints(
-            1, 7, 1, 1, 0, 0, GridBagConstraints.LINE_START,
-            GridBagConstraints.HORIZONTAL, new Insets(2, 0, 0, 0), 0, 0));
-      }
+      leftPanel.add(this.searchTextField, new GridBagConstraints(
+          0, 7, 2, 1, 0, 0, GridBagConstraints.LINE_START,
+          GridBagConstraints.HORIZONTAL, new Insets(0, 0, 0, 0), 0, 0));
 
       JPanel rightPanel = new JPanel(new GridBagLayout());
       // First row

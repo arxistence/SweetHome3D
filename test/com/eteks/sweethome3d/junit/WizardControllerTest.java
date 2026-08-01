@@ -149,7 +149,7 @@ public class WizardControllerTest extends TestCase {
    * A simple <code>WizardController</code> implementation that displays two steps.
    */
   private static class ControllerTest extends WizardController {
-    private static URL stepIcon = WizardController.class.getResource("resources/backgroundImageWizard.png");
+    private static URL stepIcon = WizardController.class.getResource("resources/biw-210.png");
     
     public ControllerTest(UserPreferences preferences, ViewFactory viewFactory) {
       super(preferences, viewFactory);

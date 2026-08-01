@@ -20,6 +20,7 @@
 package com.eteks.sweethome3d.junit;
 
 import java.awt.Component;
+import java.awt.Font;
 import java.text.Collator;
 import java.util.List;
 import java.util.Locale;
@@ -29,6 +30,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTree;
+import javax.swing.LookAndFeel;
+import javax.swing.UIManager;
 import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 
@@ -39,6 +42,7 @@ import com.eteks.sweethome3d.model.CatalogPieceOfFurniture;
 import com.eteks.sweethome3d.model.FurnitureCatalog;
 import com.eteks.sweethome3d.model.FurnitureCategory;
 import com.eteks.sweethome3d.swing.FurnitureCatalogTree;
+import com.eteks.sweethome3d.swing.SweetHome3DLightLaf;
 
 /**
  * Tests furniture catalog tree component.
@@ -82,6 +86,33 @@ public class CatalogTreeTest extends TestCase {
 
     // 4. Check alphabetical order of categories and furniture in tree
     assertTreeIsSorted(tree);
+  }
+
+  public void testCategoryRowsAreBold() throws Exception {
+    LookAndFeel previousLookAndFeel = UIManager.getLookAndFeel();
+    try {
+      UIManager.setLookAndFeel(new SweetHome3DLightLaf());
+      Locale.setDefault(Locale.US);
+      FurnitureCatalog catalog = new DefaultFurnitureCatalog();
+      JTree tree = new FurnitureCatalogTree(catalog);
+      TreeModel model = tree.getModel();
+      Object root = model.getRoot();
+      Object firstCategory = model.getChild(root, 0);
+      Object firstPiece = model.getChild(firstCategory, 0);
+
+      TreeCellRenderer renderer = tree.getCellRenderer();
+      Component categoryLabel = ((JComponent)renderer.getTreeCellRendererComponent(
+          tree, firstCategory, false, true, false, 0, false)).getComponent(0);
+      boolean categoryBold = ((JLabel)categoryLabel).getFont().isBold();
+      Component pieceLabel = ((JComponent)renderer.getTreeCellRendererComponent(
+          tree, firstPiece, false, false, true, 1, false)).getComponent(0);
+      boolean pieceBold = ((JLabel)pieceLabel).getFont().isBold();
+
+      assertTrue("Category row should be bold", categoryBold);
+      assertFalse("Furniture row should not be bold", pieceBold);
+    } finally {
+      UIManager.setLookAndFeel(previousLookAndFeel);
+    }
   }
 
   public void assertTreeIsSorted(JTree tree) {
