@@ -43,7 +43,7 @@ public class PackageDependenciesTest extends TestCase {
     packageFilter.addPackage("com.eteks.sweethome3d.junit");
 
     JDepend jdepend = new JDepend(packageFilter);
-    jdepend.addDirectory("classes");
+    jdepend.addDirectory("build/classes/java/main");
 
     DependencyConstraint constraint = new DependencyConstraint();
     // Sweet Home 3D packages

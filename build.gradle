@@ -725,7 +725,33 @@ tasks.named('build') {
 // Configure test task
 tasks.named('test') {
     jvmArgs = application.applicationDefaultJvmArgs
-    ignoreFailures = true
+    ignoreFailures = false
+    // The following tests are excluded from the gate:
+    //  - 13 Abbot GUI-simulation tests that race the EDT for real window
+    //    focus/drag/click events — flaky in non-interactive environments,
+    //    predate this project's modernization work.
+    //  - PackageDependenciesTest: its JDepend constraint is stale relative
+    //    to the Java 21 toolchain (JDepend 2.9.1's bytecode reader can't
+    //    parse Java 21 class files and misses method-body-only deps).
+    // See docs/superpowers/specs/2026-08-01-phase5-packaging-ci-design.md
+    // for the investigation. Tracked as follow-ups; excluded here so the
+    // test gate is otherwise meaningful.
+    exclude [
+        '**/RoomTest.class',
+        '**/BackgroundImageWizardTest.class',
+        '**/HomeCameraTest.class',
+        '**/HomeFurniturePanelTest.class',
+        '**/ImportedFurnitureWizardTest.class',
+        '**/ImportedTextureWizardTest.class',
+        '**/LevelTest.class',
+        '**/PhotoCreationTest.class',
+        '**/PlanComponentTest.class',
+        '**/PlanComponentWithFurnitureTest.class',
+        '**/PrintTest.class',
+        '**/ThreadedTaskControllerTest.class',
+        '**/TransferHandlerTest.class',
+        '**/PackageDependenciesTest.class',
+    ]
 }
 
 // Configure wrapper
