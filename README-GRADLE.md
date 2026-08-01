@@ -73,32 +73,30 @@ This document describes the Gradle build system for Sweet Home 3D.
 
 | Task | Description | Platform | Output |
 |------|-------------|----------|--------|
-| `windowsInstaller` | Windows installer | Windows | `install/SweetHome3D-{version}-windows.exe` |
-| `macosxInstaller` | macOS disk image | macOS | `install/SweetHome3D-{version}-macosx.dmg` |
-| `linux32Installer` | Linux 32-bit archive | Any | `install/SweetHome3D-{version}-linux-x86.tgz` |
-| `linux64Installer` | Linux 64-bit archive | Any | `install/SweetHome3D-{version}-linux-x64.tgz` |
+| `jlinkRuntime` | Custom Java 21 runtime image | Any | `build/jlink-runtime/` |
+| `jpackageDmg` | macOS disk image installer | macOS | `build/jpackage/Sweet Home 3D-{version}.dmg` |
+| `jpackageMsi` | Windows MSI installer | Windows | `build/jpackage/Sweet Home 3D-{version}.msi` |
+| `jpackageDeb` | Linux Debian package | Linux | `build/jpackage/sweet-home-3d_{version}_amd64.deb` |
 
 ### Utility Tasks
 
 | Task | Description | Purpose |
 |------|-------------|---------|
-| `java3dLibraries` | Build Java 3D libraries | Platform support |
 | `jdepend` | Dependency analysis | Code quality |
 | `javadoc` | Generate API documentation | Documentation |
 
 ## Configuration
 
-The Java version is fixed by the Gradle toolchain block in `build.gradle` (Java 21) — there is no per-platform JRE path configuration to edit. Dependency versions live in `gradle/libs.versions.toml`. Windows/macOS installer tooling paths (Inno Setup, hdiutil) are being replaced by jpackage; see the project's modernization design doc for the current state of packaging.
+The Java version is fixed by the Gradle toolchain block in `build.gradle` (Java 21) — there is no per-platform JRE path configuration to edit. Dependency versions live in `gradle/libs.versions.toml`. Installers are built via `jpackage`/`jlink` (JDK-bundled, no external installer tooling needed) — see `docs/superpowers/specs/2026-08-01-phase5-packaging-ci-design.md` for the packaging architecture.
 
 ## Platform Requirements
 
 ### Windows
 - **Required**: Windows 10 or later
 - **Tools**: 
-  - Inno Setup 5 Unicode (for installer creation)
-  - Launch4j (for executable creation)
-  - Windows SDK with SignTool (for code signing, optional)
-- **JRE**: Windows 32-bit and 64-bit JREs
+  - WiX Toolset (required by jpackage for `.msi` creation — GitHub Actions' `windows-latest` runner installs this via Chocolatey as part of CI; for local builds, install from https://wixtoolset.org)
+  - Windows SDK with SignTool (for code signing, optional — not used this phase, `.msi` ships unsigned)
+- **JRE**: bundled into the installer via `jlinkRuntime` — no separate JRE install needed
 
 ### macOS
 - **Required**: macOS 10.14 or later
@@ -211,9 +209,9 @@ java -version
 **Platform-Specific Build Failures**
 ```bash
 # Check required tools are installed
-which innosetup  # Windows
-which hdiutil    # macOS
-which tar        # Linux
+where wix        # Windows (WiX Toolset, needed for jpackageMsi)
+which hdiutil    # macOS (needed for jpackageDmg)
+which dpkg-deb   # Linux (needed for jpackageDeb)
 ```
 
 ### Getting Help

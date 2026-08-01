@@ -26,11 +26,10 @@ The translation of Sweet Home 3D's Ant build system to Gradle has been successfu
    - `sourceArchive` - Source code archive (50MB)
    - `javadocArchive` - API documentation archive
 
-4. **Platform-Specific Installers**
-   - `windowsInstaller` - Windows installer (requires Windows + Inno Setup)
-   - `macosxInstaller` - macOS installer (requires macOS + hdiutil)
-   - `linux32Installer` - Linux 32-bit installer
-   - `linux64Installer` - Linux 64-bit installer
+4. **Platform-Specific Installers** (superseded by jpackage/jlink in Phase 5 — see `docs/superpowers/specs/2026-08-01-phase5-packaging-ci-design.md`)
+   - `jpackageDmg` - macOS .dmg installer (requires macOS)
+   - `jpackageMsi` - Windows .msi installer (requires Windows + WiX Toolset)
+   - `jpackageDeb` - Linux .deb installer (requires Linux)
    - `portableArchive` - Portable installation files
 
 5. **Utility Tasks**
@@ -139,9 +138,9 @@ javaHome.macosx.arm64=/Library/Java/JavaVirtualMachines/zulu-15.0.10-macosx_aarc
 ```
 
 ### Required Tools
-- **Windows**: Inno Setup 5 Unicode, Launch4j, SignTool (optional)
-- **macOS**: Xcode command line tools, codesign (optional)
-- **Linux**: Standard build tools
+- **Windows**: WiX Toolset (for jpackage .msi creation), SignTool (optional, not used)
+- **macOS**: Xcode command line tools, codesign (optional, not used — .dmg ships unsigned)
+- **Linux**: Standard build tools (dpkg-deb, for jpackage .deb creation)
 
 ## Migration Checklist
 

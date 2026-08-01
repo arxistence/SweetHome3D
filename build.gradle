@@ -12,10 +12,10 @@
  * - examples: Builds Examples.jar with example files
  * - helpJar: Builds Help.jar with help documentation
  * - jarExecutable: Builds executable JAR with all dependencies
- * - windowsInstaller: Builds Windows installer (Windows only)
- * - macosxInstaller: Builds macOS installer (macOS only)
- * - linux32Installer: Builds Linux 32-bit installer
- * - linux64Installer: Builds Linux 64-bit installer
+ * - jlinkRuntime: Builds a custom Java 21 runtime image via jlink
+ * - jpackageDmg: Builds macOS .dmg installer (macOS only)
+ * - jpackageMsi: Builds Windows .msi installer (Windows only)
+ * - jpackageDeb: Builds Linux .deb installer (Linux only)
  * - portableArchive: Builds portable archive
  * - sourceArchive: Builds source archive
  * - javadocArchive: Builds Javadoc archive
@@ -661,88 +661,6 @@ tasks.register('fatJar', Jar) {
     }
 }
 
-// Build Java 3D libraries for different platforms
-tasks.register('java3dLibraries') {
-    group = 'build'
-    description = 'Builds Java 3D libraries for different platforms'
-    dependsOn tasks.named('joglJava3d'), tasks.named('joglJava3dX86')
-
-    doLast {
-        // Create platform-specific Java 3D libraries
-        ['windows/i386', 'windows/x64', 'linux/i386', 'linux/x64', 'macosx'].each { platform ->
-            def destDir = file("deploy/lib/${platform}")
-            destDir.mkdirs()
-        }
-    }
-}
-
-// Platform-specific installer tasks
-tasks.register('windowsInstaller') {
-    group = 'installer'
-    description = 'Builds Windows installer (Windows only)'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-            throw new GradleException('Windows installer can only be built on Windows')
-        }
-
-        // Windows installer build logic
-        exec {
-            executable 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe'
-            args = [file('install/windows/installerInnoSetup.iss').absolutePath]
-        }
-    }
-}
-
-tasks.register('macosxInstaller') {
-    group = 'installer'
-    description = 'Builds macOS installer (macOS only)'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        if (!org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
-            throw new GradleException('macOS installer can only be built on macOS')
-        }
-
-        // macOS installer build logic
-        exec {
-            executable 'hdiutil'
-            args = [
-                'create',
-                '-fs', 'HFS+',
-                '-format', 'UDBZ',
-                '-srcfolder', "install/macosx/SweetHome3D-${version}",
-                "install/SweetHome3D-${version}-macosx.dmg"
-            ]
-        }
-    }
-}
-
-tasks.register('linux32Installer') {
-    group = 'installer'
-    description = 'Builds Linux 32-bit installer'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Linux 32-bit installer build logic
-        println "Linux 32-bit installer build would be implemented here"
-        println "This requires platform-specific JRE and native libraries"
-    }
-}
-
-tasks.register('linux64Installer') {
-    group = 'installer'
-    description = 'Builds Linux 64-bit installer'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Linux 64-bit installer build logic
-        println "Linux 64-bit installer build would be implemented here"
-        println "This requires platform-specific JRE and native libraries"
-    }
-}
-
 // Portable archive task
 tasks.register('portableArchive') {
     group = 'installer'
@@ -795,7 +713,6 @@ tasks.register('sourceArchive', Zip) {
     destinationDirectory = file('install')
 
     from('.') {
-        include 'build.xml'
         include 'build.gradle'
         include '*.TXT'
         include 'THIRDPARTY-LICENSE-*.HTML'
@@ -805,13 +722,7 @@ tasks.register('sourceArchive', Zip) {
         include 'test/**'
         include 'lib/**'
         include 'libtest/**'
-        include 'deploy/SweetHome3D*.*'
-        include 'deploy/*.php'
-        include 'install/linux/*'
-        include 'install/macosx/**'
         include 'install/portable/*'
-        include 'install/viewer/*'
-        include 'install/windows/*'
         include '.settings/**'
         include '.classpath'
         include '.project'
