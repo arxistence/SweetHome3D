@@ -1,0 +1,46 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  package:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            task: jpackageDmg
+            artifact-glob: build/jpackage/*.dmg
+          - os: windows-latest
+            task: jpackageMsi
+            artifact-glob: build/jpackage/*.msi
+          - os: ubuntu-latest
+            task: jpackageDeb
+            artifact-glob: build/jpackage/*.deb
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install WiX Toolset (Windows only)
+        if: matrix.os == 'windows-latest'
+        run: choco install wixtoolset -y
+
+      - name: Build installer
+        run: ./gradlew jlinkRuntime ${{ matrix.task }} --console=plain --rerun
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sweethome3d-${{ matrix.os }}
+          path: ${{ matrix.artifact-glob }}

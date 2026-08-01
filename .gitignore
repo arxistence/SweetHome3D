@@ -90,3 +90,9 @@ nb-configuration.xml
 ##############################
 *.log
 
+
+# Vendor binaries (Java3D, JOGL, Yafaray, JMF, sunflow, abbot, etc.) required
+# at compile/runtime. Not on Maven Central in these versions. Tracked so CI
+# builds from a clean checkout. Native .dylib/.dll/.so already tracked.
+!lib/**
+!libtest/**

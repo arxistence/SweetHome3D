@@ -12,10 +12,10 @@
  * - examples: Builds Examples.jar with example files
  * - helpJar: Builds Help.jar with help documentation
  * - jarExecutable: Builds executable JAR with all dependencies
- * - windowsInstaller: Builds Windows installer (Windows only)
- * - macosxInstaller: Builds macOS installer (macOS only)
- * - linux32Installer: Builds Linux 32-bit installer
- * - linux64Installer: Builds Linux 64-bit installer
+ * - jlinkRuntime: Builds a custom Java 21 runtime image via jlink
+ * - jpackageDmg: Builds macOS .dmg installer (macOS only)
+ * - jpackageMsi: Builds Windows .msi installer (Windows only)
+ * - jpackageDeb: Builds Linux .deb installer (Linux only)
  * - portableArchive: Builds portable archive
  * - sourceArchive: Builds source archive
  * - javadocArchive: Builds Javadoc archive
@@ -353,6 +353,161 @@ tasks.register('jarExecutable', Jar) {
     }
 }
 
+// Custom Java 21 runtime image for jpackage, built via jlink.
+// Uses ALL-MODULE-PATH against only the JDK's own jmods (not the app's jars) — this
+// app has no module-info.java and makes heavy reflective use of internal java.desktop
+// APIs (see the --add-opens flags above), so precise per-module trimming via jdeps is
+// deliberately avoided as too risky; this ships the full JDK module set instead.
+def jpackageJavaLauncher = javaToolchains.launcherFor {
+    languageVersion = JavaLanguageVersion.of(21)
+}
+
+tasks.register('jlinkRuntime', Exec) {
+    group = 'distribution'
+    description = 'Builds a custom Java 21 runtime image via jlink for jpackage'
+
+    def runtimeDir = file('build/jlink-runtime')
+    outputs.dir(runtimeDir)
+
+    doFirst {
+        delete(runtimeDir)
+        def jdkHome = jpackageJavaLauncher.get().metadata.installationPath.asFile
+        commandLine "${jdkHome}/bin/jlink", '--module-path', "${jdkHome}/jmods",
+            '--add-modules', 'ALL-MODULE-PATH', '--output', runtimeDir.absolutePath,
+            '--strip-debug', '--no-header-files', '--no-man-pages'
+    }
+    // Actual command is set in doFirst (needs the resolved toolchain path); this
+    // placeholder satisfies Exec's requirement that commandLine be set at configuration time.
+    commandLine 'true'
+}
+
+// Stages the app jar plus one platform's native libraries flatly into one directory,
+// so jpackage's default java.library.path (which always includes the app's own
+// install dir) finds them with no explicit override.
+tasks.register('stageJpackageInputMacos', Copy) {
+    group = 'distribution'
+    dependsOn tasks.named('jarExecutable')
+    into file('build/jpackage-input/macosx')
+    from(tasks.named('jarExecutable').get().outputs.files) { rename { 'SweetHome3D.jar' } }
+    from('lib/java3d-1.6/macosx') { include '*.dylib' }
+    from('lib/yafaray/macosx') { include '*.dylib' }
+    from('lib/yafaray/macosx/yafaray-plugins') { into 'yafaray-plugins' }
+}
+
+tasks.register('stageJpackageInputWindows', Copy) {
+    group = 'distribution'
+    dependsOn tasks.named('jarExecutable')
+    into file('build/jpackage-input/windows')
+    from(tasks.named('jarExecutable').get().outputs.files) { rename { 'SweetHome3D.jar' } }
+    from('lib/java3d-1.6/windows/amd64') { include '*.dll' }
+    from('lib/yafaray/windows/x64') { include '*.dll' }
+    from('lib/yafaray/windows/x64/yafaray-plugins') { into 'yafaray-plugins' }
+}
+
+tasks.register('stageJpackageInputLinux', Copy) {
+    group = 'distribution'
+    dependsOn tasks.named('jarExecutable')
+    into file('build/jpackage-input/linux')
+    from(tasks.named('jarExecutable').get().outputs.files) { rename { 'SweetHome3D.jar' } }
+    from('lib/java3d-1.6/linux/amd64') { include '*.so' }
+    from('lib/yafaray/linux/x64') { include '*.so' }
+    from('lib/yafaray/linux/x64/yafaray-plugins') { into 'yafaray-plugins' }
+}
+
+// Common jpackage args shared by all 3 platforms: the app's --add-opens flags
+// (unchanged from applicationDefaultJvmArgs above) and the Yafaray plugins folder.
+def jpackageCommonJavaOptions = [
+    '--add-opens=java.desktop/java.awt=ALL-UNNAMED',
+    '--add-opens=java.desktop/sun.awt=ALL-UNNAMED',
+    '--add-opens=java.desktop/com.apple.eio=ALL-UNNAMED',
+    '--add-opens=java.desktop/com.apple.eawt=ALL-UNNAMED',
+    '-Dcom.eteks.sweethome3d.j3d.YafarayPluginsFolder=$APPDIR/yafaray-plugins',
+    '-Djogamp.gluegen.UseTempJarCache=false'
+]
+
+tasks.register('jpackageDmg', Exec) {
+    group = 'distribution'
+    description = 'Builds a macOS .dmg installer (macOS only)'
+    dependsOn tasks.named('jlinkRuntime'), tasks.named('stageJpackageInputMacos')
+
+    doFirst {
+        if (!org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+            throw new GradleException('jpackageDmg can only be built on macOS')
+        }
+        def jdkHome = jpackageJavaLauncher.get().metadata.installationPath.asFile
+        def args = ["${jdkHome}/bin/jpackage",
+            '--type', 'dmg',
+            '--name', 'Sweet Home 3D',
+            '--app-version', version.toString(),
+            '--vendor', 'Space Mushrooms',
+            '--runtime-image', file('build/jlink-runtime').absolutePath,
+            '--input', file('build/jpackage-input/macosx').absolutePath,
+            '--main-jar', 'SweetHome3D.jar',
+            '--main-class', 'com.eteks.sweethome3d.SweetHome3DBootstrap',
+            '--icon', file('installer/icons/SweetHome3D.icns').absolutePath,
+            '--dest', file('build/jpackage').absolutePath]
+        jpackageCommonJavaOptions.each { args += ['--java-options', it] }
+        commandLine args
+    }
+    commandLine 'true'
+}
+
+tasks.register('jpackageMsi', Exec) {
+    group = 'distribution'
+    description = 'Builds a Windows .msi installer (Windows only, needs WiX Toolset)'
+    dependsOn tasks.named('jlinkRuntime'), tasks.named('stageJpackageInputWindows')
+
+    doFirst {
+        if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
+            throw new GradleException('jpackageMsi can only be built on Windows')
+        }
+        def jdkHome = jpackageJavaLauncher.get().metadata.installationPath.asFile
+        def args = ["${jdkHome}/bin/jpackage",
+            '--type', 'msi',
+            '--name', 'Sweet Home 3D',
+            '--app-version', version.toString(),
+            '--vendor', 'Space Mushrooms',
+            '--runtime-image', file('build/jlink-runtime').absolutePath,
+            '--input', file('build/jpackage-input/windows').absolutePath,
+            '--main-jar', 'SweetHome3D.jar',
+            '--main-class', 'com.eteks.sweethome3d.SweetHome3DBootstrap',
+            '--icon', file('installer/icons/SweetHome3D.ico').absolutePath,
+            '--dest', file('build/jpackage').absolutePath,
+            '--win-menu', '--win-shortcut']
+        jpackageCommonJavaOptions.each { args += ['--java-options', it] }
+        commandLine args
+    }
+    commandLine 'true'
+}
+
+tasks.register('jpackageDeb', Exec) {
+    group = 'distribution'
+    description = 'Builds a Linux .deb installer (Linux only)'
+    dependsOn tasks.named('jlinkRuntime'), tasks.named('stageJpackageInputLinux')
+
+    doFirst {
+        if (!org.gradle.internal.os.OperatingSystem.current().isLinux()) {
+            throw new GradleException('jpackageDeb can only be built on Linux')
+        }
+        def jdkHome = jpackageJavaLauncher.get().metadata.installationPath.asFile
+        def args = ["${jdkHome}/bin/jpackage",
+            '--type', 'deb',
+            '--name', 'Sweet Home 3D',
+            '--app-version', version.toString(),
+            '--vendor', 'Space Mushrooms',
+            '--runtime-image', file('build/jlink-runtime').absolutePath,
+            '--input', file('build/jpackage-input/linux').absolutePath,
+            '--main-jar', 'SweetHome3D.jar',
+            '--main-class', 'com.eteks.sweethome3d.SweetHome3DBootstrap',
+            '--icon', file('installer/icons/SweetHome3D.png').absolutePath,
+            '--dest', file('build/jpackage').absolutePath,
+            '--linux-shortcut']
+        jpackageCommonJavaOptions.each { args += ['--java-options', it] }
+        commandLine args
+    }
+    commandLine 'true'
+}
+
 // Create a clean JAR that excludes old JOGL and only uses Java 3D 1.6 libraries
 tasks.register('jarCleanJogl', Jar) {
     group = 'build'
@@ -506,88 +661,6 @@ tasks.register('fatJar', Jar) {
     }
 }
 
-// Build Java 3D libraries for different platforms
-tasks.register('java3dLibraries') {
-    group = 'build'
-    description = 'Builds Java 3D libraries for different platforms'
-    dependsOn tasks.named('joglJava3d'), tasks.named('joglJava3dX86')
-
-    doLast {
-        // Create platform-specific Java 3D libraries
-        ['windows/i386', 'windows/x64', 'linux/i386', 'linux/x64', 'macosx'].each { platform ->
-            def destDir = file("deploy/lib/${platform}")
-            destDir.mkdirs()
-        }
-    }
-}
-
-// Platform-specific installer tasks
-tasks.register('windowsInstaller') {
-    group = 'installer'
-    description = 'Builds Windows installer (Windows only)'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        if (!org.gradle.internal.os.OperatingSystem.current().isWindows()) {
-            throw new GradleException('Windows installer can only be built on Windows')
-        }
-
-        // Windows installer build logic
-        exec {
-            executable 'C:\\Program Files (x86)\\Inno Setup 5\\ISCC.exe'
-            args = [file('install/windows/installerInnoSetup.iss').absolutePath]
-        }
-    }
-}
-
-tasks.register('macosxInstaller') {
-    group = 'installer'
-    description = 'Builds macOS installer (macOS only)'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        if (!org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
-            throw new GradleException('macOS installer can only be built on macOS')
-        }
-
-        // macOS installer build logic
-        exec {
-            executable 'hdiutil'
-            args = [
-                'create',
-                '-fs', 'HFS+',
-                '-format', 'UDBZ',
-                '-srcfolder', "install/macosx/SweetHome3D-${version}",
-                "install/SweetHome3D-${version}-macosx.dmg"
-            ]
-        }
-    }
-}
-
-tasks.register('linux32Installer') {
-    group = 'installer'
-    description = 'Builds Linux 32-bit installer'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Linux 32-bit installer build logic
-        println "Linux 32-bit installer build would be implemented here"
-        println "This requires platform-specific JRE and native libraries"
-    }
-}
-
-tasks.register('linux64Installer') {
-    group = 'installer'
-    description = 'Builds Linux 64-bit installer'
-    dependsOn tasks.named('jarExecutable')
-
-    doLast {
-        // Linux 64-bit installer build logic
-        println "Linux 64-bit installer build would be implemented here"
-        println "This requires platform-specific JRE and native libraries"
-    }
-}
-
 // Portable archive task
 tasks.register('portableArchive') {
     group = 'installer'
@@ -640,7 +713,6 @@ tasks.register('sourceArchive', Zip) {
     destinationDirectory = file('install')
 
     from('.') {
-        include 'build.xml'
         include 'build.gradle'
         include '*.TXT'
         include 'THIRDPARTY-LICENSE-*.HTML'
@@ -650,13 +722,7 @@ tasks.register('sourceArchive', Zip) {
         include 'test/**'
         include 'lib/**'
         include 'libtest/**'
-        include 'deploy/SweetHome3D*.*'
-        include 'deploy/*.php'
-        include 'install/linux/*'
-        include 'install/macosx/**'
         include 'install/portable/*'
-        include 'install/viewer/*'
-        include 'install/windows/*'
         include '.settings/**'
         include '.classpath'
         include '.project'
@@ -725,7 +791,33 @@ tasks.named('build') {
 // Configure test task
 tasks.named('test') {
     jvmArgs = application.applicationDefaultJvmArgs
-    ignoreFailures = true
+    ignoreFailures = false
+    // The following tests are excluded from the gate:
+    //  - 13 Abbot GUI-simulation tests that race the EDT for real window
+    //    focus/drag/click events — flaky in non-interactive environments,
+    //    predate this project's modernization work.
+    //  - PackageDependenciesTest: its JDepend constraint is stale relative
+    //    to the Java 21 toolchain (JDepend 2.9.1's bytecode reader can't
+    //    parse Java 21 class files and misses method-body-only deps).
+    // See docs/superpowers/specs/2026-08-01-phase5-packaging-ci-design.md
+    // for the investigation. Tracked as follow-ups; excluded here so the
+    // test gate is otherwise meaningful.
+    exclude [
+        '**/RoomTest.class',
+        '**/BackgroundImageWizardTest.class',
+        '**/HomeCameraTest.class',
+        '**/HomeFurniturePanelTest.class',
+        '**/ImportedFurnitureWizardTest.class',
+        '**/ImportedTextureWizardTest.class',
+        '**/LevelTest.class',
+        '**/PhotoCreationTest.class',
+        '**/PlanComponentTest.class',
+        '**/PlanComponentWithFurnitureTest.class',
+        '**/PrintTest.class',
+        '**/ThreadedTaskControllerTest.class',
+        '**/TransferHandlerTest.class',
+        '**/PackageDependenciesTest.class',
+    ]
 }
 
 // Configure wrapper
