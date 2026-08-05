@@ -70,6 +70,14 @@ tasks.named('run') {
     doFirst {
         file('build/run-prefs').mkdirs()
     }
+    // -Xdock:name/-Xdock:icon are macOS-only AWT options; without them the Dock
+    // shows the launcher's own name ("java") instead of the app's.
+    if (org.gradle.internal.os.OperatingSystem.current().isMacOsX()) {
+        jvmArgs += [
+            '-Xdock:name=Sweet Home 3D [dev]',
+            "-Xdock:icon=${file('installer/icons/SweetHome3D.icns').absolutePath}"
+        ]
+    }
 }
 
 // Source sets configuration
